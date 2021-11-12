@@ -1,15 +1,15 @@
 # Embedding and decomposition stages of univariate functional singular spectrum analysis
 ufssa <- function(Y, L) {
-  N <- ncol(Y@coefs[[1]])
+  N <- ncol(Y@C[[1]])
   basis <- Y@B[[1]]
   d <- ncol(Y@B[[1]])
   grid <- Y@grid[[1]]
   K <- N - L + 1L
   if(ncol(Y@grid[[1]])==1){
-    C_tilde <-t(onedG(A=basis%*%Y@coefs[[1]],B=basis,grid=Y@grid[[1]]))
+    C_tilde <-t(onedG(A=basis%*%Y@C[[1]],B=basis,grid=Y@grid[[1]]))
     G <- onedG(A=basis,B=basis,grid=Y@grid[[1]])
   }else{
-    C_tilde <-t(twodG(A=basis%*%Y@coefs[[1]],B=basis,grid=Y@grid[[1]]))
+    C_tilde <-t(twodG(A=basis%*%Y@C[[1]],B=basis,grid=Y@grid[[1]]))
     G <- twodG(A=basis,B=basis,grid=Y@grid[[1]])
   }
   S0 <- SS(K, L, C_tilde, d)

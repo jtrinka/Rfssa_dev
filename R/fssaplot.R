@@ -69,13 +69,10 @@ plot.fssa <- function(x, d = length(x$values),
                       type = "values",var=1L,ylab=NA, animation = FALSE, ...) {
 
 
-  lw <- list(left.padding = list(x = -.1, units = "inches"), right.padding = list(x = 0, units = "inches"))
-  lh <- list(bottom.padding = list(x = -.1, units = "inches"), top.padding = list(x = .15, units = "inches"))
-  lattice::lattice.options(layout.widths = lw, layout.heights = lh)
 
   rotate <- function(x) t(apply(x, 2, rev))
 
-  p <- length(x$Y@coefs)
+  p <- length(x$Y@C)
   A <- ((x$values)/sum(x$values))[1L:d]
   pr <- round(A * 100L, 2L)
   idx <- sort(idx)
@@ -97,7 +94,7 @@ plot.fssa <- function(x, d = length(x$values),
       xindx <- x$Y@grid[[var]]
       z0 <- list()
       for (i in 1:d_idx){
-        if(length(x$Y@coefs)==1){
+        if(length(x$Y@C)==1){
           z0[[i]] <- x[[idx[i]]]
           }
         else{
@@ -112,7 +109,7 @@ plot.fssa <- function(x, d = length(x$values),
       for(i in 1:d_idx){
         z0_i<-list()
         for(j in 1:L){
-          if(length(U$Y@coefs)==1){
+          if(length(U$Y@C)==1){
             z0_i[[j]]<-matrix(data=x[[i]][,j],nrow=length(xindx),ncol=length(yindx))
           }else{
             z0_i[[j]]<-matrix(data=x[[i]][[var]][,j],nrow=length(xindx),ncol=length(yindx))
@@ -127,26 +124,16 @@ plot.fssa <- function(x, d = length(x$values),
   }
   if (type == "values") {
 
-    axisfont <- 1.7 # font size of axis tick marks
-    titlefont <- 2 # font size of main title
-    labelfont <- 1.8 # font size of axis labels
-    axisfont<-1.9
 
     val <- sqrt(x$values)[idx]
     graphics::plot(idx, val, type = "o", lwd = 3L,
-         col = "dodgerblue3", pch = 19L,
-         cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-         cex = 0.8, main = "(A) Singular Values",
+         col = "dodgerblue3",
          ylab = "norms", xlab = "Components")
   } else if (type == "wcor") {
     W <- fwcor(x, groups)
     wplot(W)
   }  else  if (type == "lheats") {
 
-    colfont <- 1.7 # font size of colorbar tick marks
-    titlefont <- 2 # font size of main title
-    subtitlefont <- 1.8 # font size of sub plots
-    axisfont<-1.9
 
 
     if(ncol(x$Y@grid[[var]])==1){
@@ -161,11 +148,9 @@ plot.fssa <- function(x, d = length(x$values),
     if(p>1) title0 <- paste(title0,"of the variable",
                             ifelse(is.na(ylab),var,ylab))
     p1 <- lattice::levelplot(z ~ x *
-                               y | groups, data = D0, par.strip.text=list(cex=subtitlefont),
-                             colorkey = list(labels=list(cex=colfont)), cuts = 50L,
+                               y | groups, data = D0,
                              xlab = "", ylab = "",
-                             scales =  list(cex=c(1.7, 1.7), # increase font size
-                                            alternating=1,   # axes labels left/bottom
+                             scales =  list(alternating=1,   # axes labels left/bottom
                                             tck = c(1,0)), as.table = TRUE,
                              main = title0,
                              col.regions = grDevices::heat.colors(100))
@@ -184,7 +169,7 @@ plot.fssa <- function(x, d = length(x$values),
       }else{
 
 
-        if(length(x$Y@coefs)!=1){
+        if(length(x$Y@C)!=1){
           # MFSSA animation images
           tickfont <- 1.7 # font size of colorbar tick marks
           titlefont <- 2.5 # font size of main title
@@ -354,7 +339,7 @@ plot.fssa <- function(x, d = length(x$values),
     title0 <- "(A) Singular Functions"
     if(p>1) title0 <- paste(title0,"of the variable",
                             ifelse(is.na(ylab),var,ylab))
-    if(length(x$Y@coefs)==1){
+    if(length(x$Y@C)==1){
 
       for (i in 1:d_idx){
         if(i==1){
@@ -441,7 +426,7 @@ plot.fssa <- function(x, d = length(x$values),
         subtitlefont <- 1.9 # font size of sub plots
         axisfont<-1.9
         labelfont<-2
-        if(length(x$Y@coefs)!=1){
+        if(length(x$Y@C)!=1){
         par(ask=TRUE)
         pdf(file="./mfssa_plots/mfssa_temp_funs_ani.pdf",width=6,height=6);
         for (j in 1:L){

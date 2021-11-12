@@ -1,20 +1,20 @@
 # Embedding and decomposition stages of multivariate functional singular spectrum analysis.
 mfssa <- function(Y, L = floor(Y$N/2L)){
   # get c plus plus code
-  p <- length(Y@coefs)
+  p <- length(Y@C)
   Y_d=matrix(data=0,nrow=1,ncol=p)
   for(j in 1:p)Y_d[1,j]=ncol(Y@B[[j]]);
   d <- L*matrix(c(0,Y_d),nrow = 1L, ncol = (p+1L))
-  N <- ncol(Y@coefs[[1]])
+  N <- ncol(Y@C[[1]])
   C_tilde <- list()
   G_1 <- list()
   # get inner product matrices
   for(i in 1:p){
     if(ncol(Y@grid[[i]])==1){
-      C_tilde[[i]] <- t(onedG(A=Y@B[[i]]%*%Y@coefs[[i]],B=Y@B[[i]],grid = Y@grid[[i]])) #old B
+      C_tilde[[i]] <- t(onedG(A=Y@B[[i]]%*%Y@C[[i]],B=Y@B[[i]],grid = Y@grid[[i]])) #old B
       G_1[[i]] <- t(onedG(A=Y@B[[i]],B=Y@B[[i]],grid = Y@grid[[i]])) # old A
     }else{
-      C_tilde[[i]] <- t(twodG(A=Y@B[[i]]%*%Y@coefs[[i]],B=Y@B[[i]],grid = Y@grid[[i]]))
+      C_tilde[[i]] <- t(twodG(A=Y@B[[i]]%*%Y@C[[i]],B=Y@B[[i]],grid = Y@grid[[i]]))
       G_1[[i]] <- t(twodG(A=Y@B[[i]],B=Y@B[[i]],grid = Y@grid[[i]]))
 
     }

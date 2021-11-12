@@ -26,7 +26,7 @@ ufproj <- function(U, i, d) {
   }
   CX <- array(NA, dim = c(d, K, L))
   for (k in 1L:K) {
-    x <- lagvec_new(Y@coefs[[1]], L, k)
+    x <- lagvec_new(Y@C[[1]], L, k)
     CX[, k,] <- HLinprod(x, u, G) * u
   }
   return(CX)
@@ -49,7 +49,7 @@ uV <- function(U,d) {
     u <- solve(t(basis)%*%basis)%*%t(basis)%*%U[[i]]
     lambd <- sqrt(U$values[i])
     for (k in 1L:K) {
-      x <- lagvec_new(U$Y@coefs[[1]], L, k)
+      x <- lagvec_new(U$Y@C[[1]], L, k)
       CX[k, i] <- HLinprod(x, u, G) / lambd
     }
   }
@@ -59,7 +59,7 @@ uV <- function(U,d) {
 mV <- function(U, d) {
   Y <- U$Y
   N <- U$N
-  p <- length(U$Y@coefs)
+  p <- length(U$Y@C)
   L <- U$L
   K <- N - L + 1L
   V <- matrix(nrow = K,
@@ -81,7 +81,7 @@ mV <- function(U, d) {
       x <- list()
       for (j in 1L:p) {
         u[[j]]  <- solve(t(U$Y@B[[j]])%*%U$Y@B[[j]])%*%t(U$Y@B[[j]])%*%element[[j]]
-        x[[j]] <- lagvec_new(U$Y@coefs[[j]], L, k)
+        x[[j]] <- lagvec_new(U$Y@C[[j]], L, k)
       }
       V[k, i] <- HpLinprod(u, x, G, p) / sqrt(U$values[i])
     }
@@ -97,7 +97,7 @@ mfproj <- function(U, i) {
   Y <- U$Y
   u <- list()
   B <- U$Y@B
-  p <- length(U$Y@coefs)
+  p <- length(U$Y@C)
   for (j in 1:p) {
     u[[j]] <- solve(t(B[[j]])%*%B[[j]])%*%t(B[[j]])%*%U[[i]][[j]]
   }
@@ -117,7 +117,7 @@ mfproj <- function(U, i) {
   for (k in 1:K) {
     x <- list()
     for (j in 1:p) {
-      x[[j]] <- lagvec_new(Y@coefs[[j]], L, k)
+      x[[j]] <- lagvec_new(Y@C[[j]], L, k)
     }
     #build operator
     for (j in 1:p) {

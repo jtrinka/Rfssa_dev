@@ -110,13 +110,14 @@
 #'}
 #' @useDynLib Rfssa
 #' @export
-fssa <- function(Y, L = NA, type="fssa") {
-  if(is.na(L))  L <- floor(Y$N / 2L)
-  if(length(Y@coefs)==1){
+fssa <- function(Y, L = NA) {
+  N = ncol(Y@C[[1]])
+  if(is.na(L))  L <- floor(N / 2L)
+  if(length(Y@C)==1){
     out <- ufssa(Y,L)
-  } else if (length(Y@coefs) > 1) {
+  } else{
     out <- mfssa(Y,L)
-  } else stop("Error in Type or Dimension")
+  }
   class(out) <- "fssa"
   return(out)
 }

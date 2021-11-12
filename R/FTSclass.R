@@ -9,10 +9,11 @@
 fts <- function(X, B, grid){
   fts=new(Class = "fts",C = X, B = B, grid = grid)
   p = length(X)
+  # Loop over each variable in the fts
   for(j in 1L:p){
+    # Deciding whether or not the variable corresponds to an fts observed over a two-dimensional domain or a one-dimensional domain.
     if(class(grid[[j]])=="list" && length(grid[[j]])==2){
-
-
+      # Define a function used to build the grid for variables observed over a two-dimensional domain.
 
       twoDgrid=function(u,v){
         grid=matrix(nrow=(length(u)*length(v)),ncol=2,data=NA)
@@ -30,6 +31,8 @@ fts <- function(X, B, grid){
       }
 
       if(length(grid[[j]][[1]])==2 && length(grid[[j]][[2]])==2){
+        # If the grid is specified with min and max values in both horizontal and vertical axes.
+        # Example: list(c(1,2),c(3,4))
 
         u=seq(grid[[j]][[1]][1],grid[[j]][[1]][2],length.out=ncol(X[[j]]))
         v=seq(grid[[j]][[2]][1],grid[[j]][[2]][2],length.out=nrow(X[[j]]))
@@ -41,6 +44,8 @@ fts <- function(X, B, grid){
         y_max = max(v)
 
       }else if(length(grid[[j]][[1]])==2 && length(grid[[j]][[2]])>2){
+        # If the grid is specified with min and max values in the horizontal axis and with the actual grid in the vertical axis.
+        # Example: list(c(1,2),v)
 
         u=seq(grid[[j]][[1]][1],grid[[j]][[1]][2],length.out=ncol(X[[j]]))
         M_x = length(u)
@@ -52,7 +57,8 @@ fts <- function(X, B, grid){
 
 
       }else if(length(grid[[j]][[1]])>2 && length(grid[[j]][[2]])==2){
-
+        # This case is similar as seen in the previous else if statement
+        # Example: list(u,c(1,2))
         v=seq(grid[[j]][[2]][1],grid[[j]][[2]][2],length.out=nrow(X[[j]]))
         M_x = length(grid[[j]][[1]])
         M_y = length(v)
@@ -62,7 +68,8 @@ fts <- function(X, B, grid){
         y_max = max(v)
 
       }else{
-
+        # If the grid is specified with the actual grid in the horizontal and vertical axes.
+        # Example: list(u,v)
         M_x = length(grid[[j]][[1]])
         M_y = length(grid[[j]][[2]])
         x_min = min(grid[[j]][[1]])
@@ -73,10 +80,11 @@ fts <- function(X, B, grid){
         v=seq(y_min,y_max,length.out=M_y)
 
       }
+      # Create the grid using u and v
       fts@grid[[j]]=twoDgrid(u,v)
 
+      # If the fts only contains one observation
       if(length(dim(X[[j]]))==2){
-        N=1
         X_temp=matrix(data=NA,nrow=M_x*M_y,ncol=1)
         count=1
         for(i in 1:M_x){
@@ -90,6 +98,7 @@ fts <- function(X, B, grid){
         }
         X[[j]]=X_temp
 
+      # If the fts contains more than one observation
       }else if(length(dim(X[[j]]))==3){
         N=dim(X[[j]])[3]
         X_temp=matrix(data=NA,nrow=M_x*M_y,ncol=N)
@@ -110,84 +119,95 @@ fts <- function(X, B, grid){
         X[[j]]=X_temp
 
       }
-
+    # If the variable is observed over a one-dimensional domain
     }else if(class(grid[[j]])=="list" && length(grid[[j]])==1 && length(grid[[j]][[1]])>2){
-
+      # If the grid is supplied in a list, the variable corresponds with a one-dimensional domain, and the list element is the grid.
+      # Example: list(u)
       M_x=length(grid[[j]][[1]])
       fts@grid[[j]]=matrix(grid[[j]][[1]],ncol=1)
       X[[j]]=as.matrix(X[[j]])
-      N=ncol(X[[j]])
+
 
 
     }else if(class(grid[[j]])=="list" && length(grid[[j]])==1 && length(grid[[j]][[1]])==2){
 
-
+      # If the grid is supplied in a list, the variable corresponds with a one-dimensional domain, and the list element is the min and max values of the grid.
+      # Example: list(c(1,2))
       u=seq(grid[[j]][[1]][1],grid[[j]][[1]][2],length.out=nrow(X[[j]]))
       fts@grid[[j]]=matrix(u,ncol=1)
       X[[j]]=as.matrix(X[[j]])
-      N=ncol(X[[j]])
+
 
 
     }else if(class(grid[[j]])=="numeric" && length(grid[[j]])==2){
 
-
+      # If the grid specified with the min and max values of the grid.
+      # Example: c(1,2)
         u=seq(grid[[j]][1],grid[[j]][2],length.out=nrow(X[[j]]))
         fts@grid[[j]]=matrix(u,ncol=1)
         X[[j]]=as.matrix(X[[j]])
-        N=ncol(X[[j]])
+
 
     }else{
-
+      # If the grid specified with the grid itself.
+      # Example: u
       M_x=length(grid[[1]])
       fts@grid[[j]]=matrix(grid[[j]],ncol=1)
       X[[j]]=as.matrix(X[[j]])
-      N=ncol(X[[j]])
+
 
       }
 
 
 
-
+    # Generating basis matrices
     if(class(B[[j]])=="list" && B[[j]][[2]]=="bspline" &&  ncol(fts@grid[[j]])==1){
-
+      # Generating a bspline basis for variables whose domain is one-dimensional using a supplied list.
+      # Example: list(10,"bspline")
       fts@B[[j]]=fda::eval.basis(evalarg = seq(min(fts@grid[[j]]),max(fts@grid[[j]]),length.out=nrow(fts@grid[[j]])),basisobj = fda::create.bspline.basis(rangeval = c(min(fts@grid[[j]]),max(fts@grid[[j]])),nbasis = B[[j]][[1]]))
       B[[j]]=fts@B[[j]]
 
     }else if(class(B[[j]])=="list" && B[[j]][[2]]=="fourier" &&  ncol(fts@grid[[j]])==1){
-
+      # Generating a fourier basis for variables whose domain is one-dimensional using a supplied list.
+      # Example: list(10,"fourier")
       fts@B[[j]]=fda::eval.basis(evalarg = seq(min(fts@grid[[j]]),max(fts@grid[[j]]),length.out=nrow(fts@grid[[j]])),basisobj = fda::create.fourier.basis(rangeval = c(min(fts@grid[[j]]),max(fts@grid[[j]])),nbasis = B[[j]][[1]]))
       B[[j]]=fts@B[[j]]
     }
 
     if(class(B[[j]])=="list" && B[[j]][[3]]=="bspline" && B[[j]][[4]]=="bspline" && length(grid[[j]])==2){
-
+      # Generating a bspline basis for variables whose domain is two-dimensional using a supplied list.
+      # Example: list(list(10,"bspline"),list(12,"bspline"))
       b_1=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1]),length.out=M_x),basisobj = fda::create.bspline.basis(rangeval = c(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1])),nbasis = B[[j]][[1]]))
       b_2=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2]),length.out=M_y),basisobj = fda::create.bspline.basis(rangeval = c(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2])),nbasis = B[[j]][[2]]))
       fts@B[[j]]=kronecker(b_1,b_2)
       B[[j]]=fts@B[[j]]
 
     }else if(class(B[[j]])=="list" && B[[j]][[3]]=="bspline" && B[[j]][[4]]=="fourier" && length(grid[[j]])==2){
-
+      # Generating a bspline/fourier basis for variables whose domain is two-dimensional using a supplied list.
+      # Example: list(list(10,"bspline"),list(12,"fourier"))
       b_1=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1]),length.out=M_x),basisobj = fda::create.bspline.basis(rangeval = c(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1])),nbasis = B[[j]][[1]]))
       b_2=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2]),length.out=M_y),basisobj = fda::create.fourier.basis(rangeval = c(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2])),nbasis = B[[j]][[2]]))
       fts@B[[j]]=kronecker(b_1,b_2)
       B[[j]]=fts@B[[j]]
 
     }else if(class(B[[j]])=="list" && B[[j]][[3]]=="fourier" && B[[j]][[4]]=="bspline" && length(grid[[j]])==2){
-
+      # This case is similar to the previous else if statement
+      # Example: list(list(10,"fourier"),list(12,"bspline"))
       b_1=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1]),length.out=M_x),basisobj = fda::create.fourier.basis(rangeval = c(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1])),nbasis = B[[j]][[1]]))
       b_2=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2]),length.out=M_y),basisobj = fda::create.bspline.basis(rangeval = c(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2])),nbasis = B[[j]][[2]]))
       fts@B[[j]]=kronecker(b_1,b_2)
       B[[j]]=fts@B[[j]]
 
     }else if(class(B[[j]])=="list" && B[[j]][[3]]=="fourier" && B[[j]][[4]]=="fourier" && length(grid[[j]])==2){
-
+      # Generating a fourier basis for variables whose domain is two-dimensional using a supplied list.
+      # Example: list(list(10,"fourier"),list(12,"fourier"))
       b_1=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1]),length.out=M_x),basisobj = fda::create.fourier.basis(rangeval = c(min(fts@grid[[j]][,1]),max(fts@grid[[j]][,1])),nbasis = B[[j]][[1]]))
       b_2=fda::eval.basis(evalarg = seq(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2]),length.out=M_y),basisobj = fda::create.fourier.basis(rangeval = c(min(fts@grid[[j]][,2]),max(fts@grid[[j]][,2])),nbasis = B[[j]][[2]]))
       fts@B[[j]]=kronecker(b_1,b_2)
       B[[j]]=fts@B[[j]]
 
     }
+    # Estimate the coefficients of each fts variable using basis elements and observed data.
     fts@C[[j]]=solve(t(B[[j]])%*%B[[j]])%*%t(B[[j]])%*%X[[j]]
 
     if(is.null(colnames(fts@C[[j]]))==TRUE){
@@ -216,17 +236,69 @@ check_fts <- function(object){
   msg <- NULL
 
   # check if fts lengths are equal
-  for(j_1 in 1:length(object@C)){
-    for(j_2 in j_1:length(object@C)){
-      if(ncol(object@C[[j_1]])!=ncol(object@C[[j_2]])){
 
-        msg<-paste("The length of variable", as.character(j_1),"and the length of variable", as.character(j_2),"are not equal.")
+  if(length(object@C)>1){
 
-        errors <- c(errors,msg)
+    for(j_1 in 1:length(object@C)){
+      for(j_2 in j_1:length(object@C)){
 
-        msg <-NULL
+
+        if(length(dim(object@C[[j_1]]))==2 && length(dim(object@C[[j_2]]))==2){
+
+
+          if(ncol(object@C[[j_1]])!=ncol(object@C[[j_2]])){
+
+          msg<-paste("The length of variable", as.character(j_1),"and the length of variable", as.character(j_2),"are not equal.")
+
+          errors <- c(errors,msg)
+
+          msg <-NULL
+
+          }
+
+
+        }
+
+        else if(length(dim(object@C[[j_1]]))==2 && length(dim(object@C[[j_2]]))==3){
+
+
+          if(ncol(object@C[[j_1]])!=dim(object@C[[j_2]])[3]){
+
+            msg<-paste("The length of variable", as.character(j_1),"and the length of variable", as.character(j_2),"are not equal.")
+
+            errors <- c(errors,msg)
+
+            msg <-NULL
+          }
+
+
+        }else if(length(dim(object@C[[j_1]]))==3 && length(dim(object@C[[j_2]]))==2){
+
+          if(dim(object@C[[j_1]])[3]!=ncol(object@C[[j_2]])){
+
+            msg<-paste("The length of variable", as.character(j_1),"and the length of variable", as.character(j_2),"are not equal.")
+
+            errors <- c(errors,msg)
+
+            msg <-NULL
+
+          }
+
+        }else if(length(dim(object@C[[j_1]]))==3 && length(dim(object@C[[j_2]]))==3){
+
+          if(dim(object@C[[j_1]])[3]!=dim(object@C[[j_2]])[3]){
+
+            msg<-paste("The length of variable", as.character(j_1),"and the length of variable", as.character(j_2),"are not equal.")
+
+            errors <- c(errors,msg)
+
+            msg <-NULL
+
+          }
+
+        }
+
       }
-
     }
   }
 
@@ -259,7 +331,7 @@ check_fts <- function(object){
     msg <-NULL
 
   }
-
+ # check if the classes and values for supplied inputs are correct
   for(i in 1L:length(object@C)){
 
     if (class(object@C[[i]])!="matrix" && class(object@C[[i]])!="numeric" && class(object@C[[i]])!="integer" && class(object@C[[i]])!="array"){
@@ -437,7 +509,7 @@ check_fts <- function(object){
     }
 
   }
-
+ # Check classes and supplied inputs for the grids
   for(i in 1L:length(object@grid)){
 
     if(class(object@grid[[i]])=="list"){
@@ -499,9 +571,9 @@ check_fts <- function(object){
 
   }
 }
-
+# Set the class definition
 setClass("fts",representation(C = "list", B="list", grid="list"),validity=check_fts)
-
+# Show method for the fts object
 setMethod("show","fts",function(object){
 
   N=ncol(object@C[[1]])
