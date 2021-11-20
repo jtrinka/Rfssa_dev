@@ -1,0 +1,68 @@
+#--------------------------------------------------------------
+#' Functional Singular Spectrum Analysis Recurrent Forecasting and Vector Forecasting
+#'
+#' This function performs functional singular spectrum analysis (FSSA) recurrent forecasting (R-forecasting) or vector forecasting (V-forecasting) of functional time series (\code{\link{fts}}) as described in
+#' Trinka et al. (2020)
+#' @return A list of objects of class \code{\link{fts}} where each fts corresponds to a group
+#' @param U an object of class \code{\link{fssa}} that holds the decomposition
+#' @param groups a list of numeric vectors where each vector includes indices of elementary components of a group used for reconstruction and forecasting
+#' @param h an integer that specifies the forecast horizon
+#' @param method a character string specifying the type of forecasting to perform either 'recurrent' or 'vector'
+#' @param tol a double specifying the amount of tolerated error in the approximation of the operator formed using a Neumann series leveraged in both forecasting algorithms
+#' @examples
+#'
+#' \dontrun{
+#'# FSSA Forecasting
+#'require(fda)
+#'require(Rfssa)
+#'data("Callcenter")
+#'## Define functional objects
+#'D <- matrix(sqrt(Callcenter$calls),nrow = 240)
+#'N <- ncol(D)
+#'time <- seq(ISOdate(1999,1,1), ISOdate(1999,12,31), by="day")
+#'K <- nrow(D)
+#'u <- seq(0,K,length.out=K)
+#'d <- 23
+#'basis <- create.bspline.basis(c(min(u),max(u)),d)
+#'Ysmooth <- smooth.basis(u,D,basis)
+#'## Define functional time series
+#'Y <- fts(Ysmooth$fd,time = time)
+#'plot(Y,xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Call Center Data")
+#'## Perfrom FSSA decomposition
+#'L <- 28
+#'U <- fssa(Y,L)
+#'groups <- list(1:7,1,2:3,4:5,6:7)
+#'## Perform FSSA R-forecast and FSSA V-forecast
+#'pr_R <- fforecast(U = U, groups = groups, h = 30, method = "recurrent", tol = 10^-3)
+#'plot(pr_R[[1]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Recurrent Forecast Group 1")
+#'plot(pr_R[[2]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Recurrent Forecast Group 2")
+#'plot(pr_R[[3]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Recurrent Forecast Group 3")
+#'plot(pr_R[[4]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Recurrent Forecast Group 4")
+#'plot(pr_R[[5]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Recurrent Forecast Group 5")
+#'
+#'pr_V <- fforecast(U = U, groups = groups, h = 30, method = "vector", tol = 10^-3)
+#'plot(pr_V[[1]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Vector Forecast Group 1")
+#'plot(pr_V[[2]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Vector Forecast Group 2")
+#'plot(pr_V[[3]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Vector Forecast Group 3")
+#'plot(pr_V[[4]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Vector Forecast Group 4")
+#'plot(pr_V[[5]],xlab="Time (6 minutes aggregated)", ylab="Square root of call numbers",main = "Vector Forecast Group 5")
+#'
+#' }
+#'
+#' @export
+fforecast <- function(U, groups=list(c(1)), h = 1, method = "recurrent",tol=10^-3){
+
+ if(length(U$Y@C)==1){
+
+   out=ufforecast(U=U, groups=groups, h = h, method = method,tol=tol)
+
+ }else{
+
+   out=mfforecast(U=U, groups=groups, h = h, method = method,tol=tol)
+
+ }
+
+   return(out)
+
+}
+
