@@ -22,7 +22,7 @@ ufwcor <- function(U, group) {
   out <- matrix(1L, nrow = d, ncol = d)
   for (i in 1L:(d - 1)) {
     for (j in (i + 1L):d) {
-      out[i, j] <- winprod(Q[[i]]@coefs[[1]], Q[[j]]@coefs[[1]], w, G)/sqrt(winprod(Q[[i]]@coefs[[1]],Q[[i]]@coefs[[1]], w, G) * winprod(Q[[j]]@coefs[[1]],Q[[j]]@coefs[[1]], w, G))
+      out[i, j] <- winprod(Q[[i]]@C[[1]], Q[[j]]@C[[1]], w, G)/sqrt(winprod(Q[[i]]@C[[1]],Q[[i]]@C[[1]], w, G) * winprod(Q[[j]]@C[[1]],Q[[j]]@C[[1]], w, G))
     }
   }
   for (i in 2:d) for (j in 1:(i - 1)) out[i, j] <- out[j, i]
@@ -37,7 +37,7 @@ mfwcor <- function(U, group) {
   L <- U$L
   K <- N - L + 1L
   w <- 1L:N
-  p = length(U$Y@coefs)
+  p = length(U$Y@C)
   Y = U$Y
   G = list()
   for(i in 1:p){
@@ -57,13 +57,13 @@ mfwcor <- function(U, group) {
     Q_i=Q[[i]]
     Q_i_l <- list()
     for(k in 1:p){
-      Q_i_l[[k]]=Q_i@coefs[[k]]
+      Q_i_l[[k]]=Q_i@C[[k]]
     }
     for (j in (i + 1L):d){
       Q_j=Q[[j]]
       Q_j_l <- list()
       for(k in 1:p){
-        Q_j_l[[k]]=Q_j@coefs[[k]]
+        Q_j_l[[k]]=Q_j@C[[k]]
       }
       wcor[i, j] <- mwinprod(Q_i_l, Q_j_l, w, G, p)/sqrt(mwinprod(Q_i_l,Q_i_l, w, G, p) * mwinprod(Q_j_l,Q_j_l, w, G, p))
     }
@@ -140,6 +140,6 @@ mfwcor <- function(U, group) {
 #' @seealso \code{\link{fssa}}, \code{\link{freconstruct}}, \code{\link{fts}}, \code{\link{wplot}}
 #' @export
 fwcor <- function(U, group) {
-  if(length(U$Y@coefs)==1) out <- ufwcor(U, group) else out <- mfwcor(U, group)
+  if(length(U$Y@C)==1) out <- ufwcor(U, group) else out <- mfwcor(U, group)
   return(out)
 }

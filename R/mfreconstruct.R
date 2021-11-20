@@ -1,12 +1,12 @@
 # Reconstruction stage (including Hankelization) of multivariate functional singular spectrum analysis.
-mfreconstruct <-function(U, group = as.list(1L:10L)){
+mfreconstruct <-function(U, groups = as.list(1L:10L)){
   N <- U$N
   Y <- U$Y
-  p <- length(U$Y@coefs)
+  p <- length(U$Y@C)
   L <- U$L
   K <- N-L+1
   basis <- list()
-  m <- length(group)
+  m <- length(groups)
   for(j in 1:p){
     basis[[j]] <- U$Y@B[[j]]
   }
@@ -21,7 +21,7 @@ mfreconstruct <-function(U, group = as.list(1L:10L)){
       C[[j]] <- matrix(NA, nrow = d, ncol = N)
       S[[j]] <- 0L
     }
-    g <- group[[i]]
+    g <- groups[[i]]
     for(k in 1L:length(g)){
       projection <- mfproj(U,g[k])
       for(j in 1:p){
@@ -39,7 +39,7 @@ mfreconstruct <-function(U, group = as.list(1L:10L)){
       recon_out_j[[j]] <- basis[[j]]%*%C_jx
     }
     # output the reconstructions
-    recon_out[[i]] <- fts2(X=recon_out_j,B=basis,grid=Y@grid)
+    recon_out[[i]] <- fts(X=recon_out_j,B=basis,grid=Y@grid)
   }
   recon_out$values <- U$values
   return(recon_out)

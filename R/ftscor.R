@@ -36,26 +36,26 @@
 #'
 #' @export
 cor.fts <- function(Y1, Y2) {
-  if(Y1$N!=Y2$N){
+  if(ncol(Y1@C[[1]])!=ncol(Y2@C[[1]])){
 
     stop("Functional time series are of different length")
 
   }
-  if(Y1$p!=Y2$p){
+  if(length(Y1)!=length(Y2)){
 
     stop("Functional time series have different number of covariates")
 
   }
-  N <- Y1$N
+  N <- ncol(Y1@C[[1]])
   w <- matrix(nrow=1,ncol=N,data=1)
-  p = Y1$p
+  p = length(Y1)
   G = list()
   Y1_list=list()
   Y2_list=list()
   for(j in 1:p){
-    G[[j]] = inprod(Y1[[j]]$basis,Y1[[j]]$basis)
-    Y1_list[[j]]=Y1[[j]]$coefs
-    Y2_list[[j]]=Y2[[j]]$coefs
+    G[[j]] = inprod(Y1@B[[j]],Y1@B[[j]])
+    Y1_list[[j]]=Y1@C[[j]]
+    Y2_list[[j]]=Y2@C[[j]]
   }
 
   wcor <- mwinprod(Y1_list, Y2_list, w, G, p)/sqrt(mwinprod(Y1_list,Y1_list, w, G, p) * mwinprod(Y2_list,Y2_list, w, G, p))

@@ -65,13 +65,8 @@
 #' @export
 plot.fssa <- function(x, d = length(x$values),
                       idx = 1:d, idy = idx+1, contrib = TRUE,
-                      groups = as.list(1:d), lagvec=1,
-                      type = "values",var=1L,ylab=NA, animation = FALSE, ...) {
-
-
-
-  rotate <- function(x) t(apply(x, 2, rev))
-
+                      groups = as.list(1:d),
+                      type = "values",vars=NULL,ylab=NA, ...) {
   p <- length(x$Y@C)
   A <- ((x$values)/sum(x$values))[1L:d]
   pr <- round(A * 100L, 2L)
@@ -89,465 +84,128 @@ plot.fssa <- function(x, d = length(x$values),
   N <- x$N
   L <- x$L
   K <- N-L+1L
-  if (type %in% c("lheats","lcurves")) {
-    if(ncol(x$Y@grid[[var]])==1){
-      xindx <- x$Y@grid[[var]]
-      z0 <- list()
-      for (i in 1:d_idx){
-        if(length(x$Y@C)==1){
-          z0[[i]] <- x[[idx[i]]]
-          }
-        else{
-          z0[[i]] <- x[[idx[i]]][[var]]
-        }
-      }
-    }else{
 
-      xindx <- unique(x$Y@grid[[var]][,"x"])
-      yindx <- unique(x$Y@grid[[var]][,"y"])
-      z0 <- list()
-      for(i in 1:d_idx){
-        z0_i<-list()
-        for(j in 1:L){
-          if(length(U$Y@C)==1){
-            z0_i[[j]]<-matrix(data=x[[i]][,j],nrow=length(xindx),ncol=length(yindx))
-          }else{
-            z0_i[[j]]<-matrix(data=x[[i]][[var]][,j],nrow=length(xindx),ncol=length(yindx))
-          }
-
-        }
-        z0[[i]]<-z0_i
-
-      }
-
-  }
-  }
   if (type == "values") {
-
-
     val <- sqrt(x$values)[idx]
-    graphics::plot(idx, val, type = "o", lwd = 3L,
-         col = "dodgerblue3",
-         ylab = "norms", xlab = "Components")
+    graphics::plot(idx, val, type = "o", lwd = 2L,
+                   col = "dodgerblue3", pch = 19L,
+                   cex = 0.8, main = "Singular Values",
+                   ylab = "norms", xlab = "Components")
   } else if (type == "wcor") {
     W <- fwcor(x, groups)
     wplot(W)
-  }  else  if (type == "lheats") {
+  }  else if (type == "lheats" || type == "lcurves") {
 
+      if(is.null(vars)) vars=1:p;
 
+      for(j in 1:length(vars)){
 
-    if(ncol(x$Y@grid[[var]])==1){
-    n <- length(xindx)
-    z <- c(sapply(z0, function(x) as.vector(x)))
-    D0 <- expand.grid(x = 1L:L,
-                      y = 1L:n, groups = idx)
-    D0$z <- z
-    D0$groups <- factor(rep(main1,
-                               each = L * n), levels = main1)
-    title0 <- "Singular functions"
-    if(p>1) title0 <- paste(title0,"of the variable",
-                            ifelse(is.na(ylab),var,ylab))
-    p1 <- lattice::levelplot(z ~ x *
-                               y | groups, data = D0,
-                             xlab = "", ylab = "",
-                             scales =  list(alternating=1,   # axes labels left/bottom
-                                            tck = c(1,0)), as.table = TRUE,
-                             main = title0,
-                             col.regions = grDevices::heat.colors(100))
-    graphics::plot(p1)
-    }else{
-
-      if(animation==FALSE){
-
-      par(ask=TRUE)
-      for(j in 1:L){
-
-        print(lattice::levelplot(z0[[lagvec]][[j]]~x$Y@grid[[var]][,"x"]*x$Y@grid[[var]][,"y"],xlab="",ylab="",col.regions = heat.colors(100),
-                           main=paste("Function ",as.character(j)," of lag vector ",as.character(lagvec),sep="")))
-      }
-
-      }else{
-
-
-        if(length(x$Y@C)!=1){
-          # MFSSA animation images
-          tickfont <- 1.7 # font size of colorbar tick marks
-          titlefont <- 2.5 # font size of main title
-          subtitlefont <- 2 # font size of sub plots
-          axisfont<-1.9
-          labelfont<-2
-          par(ask=TRUE)
-          pdf(file="./mfssa_plots/mfssa_NDVI_fun_ani.pdf",width=6,height=6);
-        for(j in 1:L){
-          d1 <- floor(sqrt(d_idx))
-          d2 <- ceiling(d_idx/d1)
-          graphics::par(mfrow = c(d1, d2),
-                        mar = c(0, 1, 7, 2),oma=c(5,5,3,1),cex.main=titlefont)
-          title0 <- paste("(B) Function " ,as.character(j)," of Lag Vectors",sep="")
-          for (i in 1:d_idx){
-            if(i==1){
-            graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][[var]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                            xlab="lon",ylab="lat",main=main1[i], xaxt="n", yaxt="n",
-                            cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-                            )
-              #axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-              axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-              axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-
-
-
-            }else if(i==2){
-
-
-            graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][[var]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                            xlab="Latitude",ylab="Longitude",main=main1[i], xaxt="n", yaxt="n",
-                            cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-            )
-
-              #axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-              #axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-              axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-
-
-
-
-
-          }else if(i==3){
-            graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][[var]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                            xlab="lat",ylab="lon",main=main1[i], xaxt="n", yaxt="n",
-                            cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-            )
-
-            axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-            axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-            #axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-
-
-
-
-          }else if(i==4){
-            graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][[var]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                            xlab="Latitude",ylab="Longitude",main=main1[i],  xaxt="n", yaxt="n",
-                            cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-            )
-            graphics::title(title0,outer = TRUE,xlab="lon",ylab="lat",cex=titlefont,cex.lab=labelfont)
-
-            axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-            #axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-            #axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-
-
-
+        if(type =="lheats" && ncol(x$Y@grid[[vars[j]]])==1){
+          n <- nrow(x$Y@grid[[vars[j]]])
+          z <-c(0)
+          for(i in idx){
+            z <- c(z,as.vector(t(x[[i]])))
           }
-          }
-        }
-          dev.off()
-        }else{
-          # UFSSA on images animation (A)
-          tickfont <- 1.7 # font size of colorbar tick marks
-          titlefont <- 2.5 # font size of main title
-          subtitlefont <- 2 # font size of sub plots
-          axisfont<-1.9
-          labelfont<-2
-          par(ask=TRUE)
-          pdf(file="./mfssa_plots/NDVI_fun_ani.pdf",width=6,height=6);
-          for(j in 1:L){
-            d1 <- floor(sqrt(d_idx))
-            d2 <- ceiling(d_idx/d1)
-            graphics::par(mfrow = c(d1, d2),
-                          mar = c(0, 1, 7, 2),oma=c(5,5,3,1),cex.main=titlefont)
-            title0 <- paste("(A) Function " ,as.character(j)," of Lag Vectors",sep="")
-            for (i in 1:d_idx){
-              if(i==1){
-                graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                                xlab="Latitude",ylab="Longitude",main=main1[i], xaxt="n",yaxt="n",
-                                cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-                )
-                #axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-                axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-                axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
+          z=z[2:length(z)]
+          D0 <- expand.grid(x = 1L:L,
+                            y = 1L:n, groups = idx)
+          D0$z <- z
+          D0$groups <- factor(rep(main1,
+                              each = L * n), levels = main1)
+          title0 <- "Singular functions"
+          if(p>1) title0 <- paste(title0,"of the variable",
+                                  ifelse(is.na(ylab),vars[j],ylab))
+          p1 <- lattice::levelplot(z ~ x *
+                                     y | groups, data = D0,
+                                   colorkey = TRUE, cuts = 50L,
+                                   xlab = "", ylab = "",
+                                   scales = list(x = list(at = NULL),
+                                                 y = list(at = NULL)),
+                                  aspect = "xy", as.table = TRUE,
+                                  main = title0,
+                                  col.regions = grDevices::heat.colors(100))
 
-
-              }else if(i==2){
-
-
-                graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                                xlab="Latitude",ylab="Longitude",main=main1[i], xaxt="n", yaxt="n",
-                                cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-                )
-
-                #axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-                #axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-                axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-
-
-
-
-              }else if(i==3){
-                graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                                xlab="Latitude",ylab="Longitude",main=main1[i], xaxt="n",yaxt="n",
-                                cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-                )
-
-                axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-                axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-                #axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-
-
-
-
-              }else if(i==4){
-                graphics::image(x = 1:33,y=1:33,z=rotate(matrix(data=x[[i]][,j],nrow=33,ncol=33)),useRaster=TRUE,
-                                xlab="Latitude",ylab="Longitude",main=main1[i], xaxt="n",yaxt="n",
-                                cex.axis = axisfont, cex.main=titlefont, cex.lab=labelfont,
-                )
-
-                axis(side = 1, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.303323,113.407503,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-                #axis(side = 2, las=2,cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(48.706792,48.775542,length.out=4),decreasing = FALSE)),start=1,stop=5),at = seq(1,33,length.out=4))
-                #axis(side = 3, cex.lab=flab,cex.axis=ftick,labels = substr(x=as.character(sort(x=seq(113.458407,113.56273,length.out=4),decreasing = TRUE)),start=1,stop=6),at = seq(1,33,length.out=4))
-                graphics::title(title0,outer = TRUE,xlab="lon",ylab="lat",cex=titlefont,cex.lab=labelfont)
-              }
+          graphics::plot(p1)
+        }else if(type =="lheats" && ncol(x$Y@grid[[vars[j]]])==2){
+          for(i in idx){
+            if(length(vars==1)){
+              y <- tibble::as_tibble(data.frame(y=c(x[[i]])))
+            }else{
+              y <- tibble::as_tibble(data.frame(y=c(x[[i]][[vars[j]]])))
             }
+            y$time <- as.factor(rep(1:L,each=nrow(x$Y@grid[[j]])))
+            y$x_1 <- rep(x$Y@grid[[j]][,1],L)
+            y$x_2 <- rep(x$Y@grid[[j]][,2],L)
+            print(ggplotly(ggplot(y,aes(x_1,x_2,fill=y,frame=time))+geom_tile()+scale_fill_distiller(palette = "RdYlBu")+theme_ipsum()+ggtitle(paste("Singular function",as.character(i),"of variable",as.character(vars[j])))))
 
           }
-          dev.off()
 
+        }else if(type =="lcurves" && ncol(x$Y@grid[[vars[j]]])==1){
 
-
-
-        }
-
-
-
-      }
-
-    }
-  } else if (type == "lcurves") {
-    tickfont <- 1.6 # font size of colorbar tick marks
-    titlefont <- 2.2 # font size of main title
-    subtitlefont <- 1.9 # font size of sub plots
-    axisfont<-1.9
-    labelfont<-2
-    if(ncol(x$Y@grid[[var]])==1){
-      if(animation==FALSE){
-    col2 <- grDevices::rainbow(L)
-    d1 <- floor(sqrt(d_idx))
-    d2 <- ceiling(d_idx/d1)
-    pdf(file="./mfssa_plots/temp_funs.pdf",width=6,height=6);
-    graphics::par(mfrow = c(d1, d2),
-                  mar = c(0.25, .5, 2, 0),oma=c(5,5,3,1),cex.main=titlefont)
-    title0 <- "(A) Singular Functions"
-    if(p>1) title0 <- paste(title0,"of the variable",
-                            ifelse(is.na(ylab),var,ylab))
-    if(length(x$Y@C)==1){
-
-      for (i in 1:d_idx){
-        if(i==1){
-          graphics::matplot(x[[idx[i]]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,xaxt="n",cex.axis=tickfont,type="l")
-        }else if(i==2){
-          #par(mar=c(5.1,4.1,3,2.1))
-          graphics::matplot(x[[idx[i]]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,xaxt="n",yaxt="n",cex.axis=tickfont,type="l")
-
-
-        }else if(i==3){
-          graphics::matplot(x[[idx[i]]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,cex.axis=tickfont,type="l")
-
-
-        }else{
-          graphics::matplot(x[[idx[i]]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,yaxt="n",cex.axis=tickfont,type="l")
-
-
-          graphics::title(main=title0,xlab="Intraday Time",ylab="Temperature (C)",cex.lab=labelfont,outer=TRUE)
-        }
-
-      }
-      dev.off()
-
-    }else{
-      pdf(file="./mfssa_plots/mfssa_temp_funs.pdf",width=6,height=6);
-      graphics::par(mfrow = c(d1, d2),
-                    mar = c(1, .5, 2.5, 0),oma=c(5,5,3,1),cex.main=titlefont)
-      title0 <- "(B) Singular Functions"
-      for (i in 1:d_idx){
-        if(i==1){
-          graphics::matplot(x[[idx[i]]][[var]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,xaxt="n",cex.axis=tickfont,type="l")
-        }else if(i==2){
-          #par(mar=c(5.1,4.1,3,2.1))
-          graphics::matplot(x[[idx[i]]][[var]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,xaxt="n",yaxt="n",cex.axis=tickfont,type="l")
-
-
-
-        }else if(i==3){
-          graphics::matplot(x[[idx[i]]][[var]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,cex.axis=tickfont,type="l")
-
-
-        }else{
-          graphics::matplot(x[[idx[i]]][[var]],
-                         lty = 1, xlab = "",ylim=range(z0),
-                         main = main1[i], ylab = "",
-                         lwd = 3, col = col2,yaxt="n",cex.axis=tickfont,type="l")
-
-
-
-
-          graphics::title(main=title0,xlab="Intraday Time",ylab="Normalized Temperature",outer=TRUE,cex.lab=labelfont)
-        }
-
-      }
-      dev.off()
-
-    }
-
-      }else{
-        # MFSSA curves
-        tickfont <- 1.7 # font size of colorbar tick marks
-        titlefont <- 2.2 # font size of main title
-        subtitlefont <- 1.9 # font size of sub plots
-        axisfont<-1.9
-        labelfont<-2
-        if(length(x$Y@C)!=1){
-        par(ask=TRUE)
-        pdf(file="./mfssa_plots/mfssa_temp_funs_ani.pdf",width=6,height=6);
-        for (j in 1:L){
           col2 <- grDevices::rainbow(L)
           d1 <- floor(sqrt(d_idx))
           d2 <- ceiling(d_idx/d1)
           graphics::par(mfrow = c(d1, d2),
-                        mar = c(1, .5, 2.5, 0),oma=c(5,5,3,1),cex.main=titlefont)
-          title0 <- paste("(D) Function ",as.character(j)," of Lag Vectors",sep="")
-          for(i in 1:d_idx){
-            if(i==1){
-              graphics::matplot(x[[idx[i]]][[var]][,j],
-                                lty = 1, xlab = "",ylim=range(z0),
-                                main = main1[i], ylab = "",
-                                lwd = 3, col = col2,xaxt="n",cex.axis=tickfont,type="l")
-            }else if(i==2){
-              #par(mar=c(5.1,4.1,3,2.1))
-              graphics::matplot(x[[idx[i]]][[var]][,j],
-                                lty = 1, xlab = "",ylim=range(z0),
-                                main = main1[i], ylab = "",
-                                lwd = 3, col = col2,xaxt="n",yaxt="n",cex.axis=tickfont,type="l")
+                        mar = c(2, 2, 3, 1),oma=c(2,2,7,1),cex.main=1.6)
+          title0 <- "Singular functions"
+          if(p>1) title0 <- paste(title0,"of the variable",
+                                  ifelse(is.na(ylab),var,ylab))
 
+          for (i in 1:d_idx){
+            if(length(vars)==1){
 
-            }else if(i==3){
-              graphics::matplot(x[[idx[i]]][[var]][,j],
-                                lty = 1, xlab = "",ylim=range(z0),
-                                main = main1[i], ylab = "",
-                                lwd = 3, col = col2,cex.axis=tickfont,type="l")
-
-
+              graphics::matplot(x$Y@grid[[j]],x[[idx[i]]],type="l",
+                           lty = 1, xlab = "",ylim=range(x[[idx[i]]]),
+                           main = main1[i], ylab = "",
+                           lwd = 2, col = col2)
+              graphics::title(title0,outer = TRUE)
             }else{
-              graphics::matplot(x[[idx[i]]][[var]][,j],
-                                lty = 1, xlab = "",ylim=range(z0),
+
+             graphics::matplot(x$Y@grid[[j]],x[[idx[i]]][[vars[j]]],type="l",
+                                lty = 1, xlab = "",ylim=range(x[[idx[i]]][[vars[j]]]),
                                 main = main1[i], ylab = "",
-                                lwd = 3, col = col2,yaxt="n",cex.axis=tickfont,type="l")
+                                lwd = 2, col = col2)
+              graphics::title(title0,outer = TRUE)
 
-
-              graphics::title(main=title0,xlab="Intraday Time",ylab="Normalized Temperature",cex.lab=labelfont,outer=TRUE)
             }
           }
-        }
-        dev.off()
-        }else{
+          graphics::par(mfrow = c(1, 1))
 
-          #par(ask=TRUE) FSSA temp animation
-          # here's what I want for animation
-          pdf(file="./mfssa_plots/temp_funs_ani.pdf",width=6,height=6);
-          for (j in 1:L){
-            col2 <- grDevices::rainbow(L)
-            d1 <- floor(sqrt(d_idx))
-            d2 <- ceiling(d_idx/d1)
-            graphics::par(mfrow = c(d1, d2),
-                          mar = c(0.25, .5, 2, 0),oma=c(5,5,3,1),cex.main=titlefont)
-            title0 <- paste("(C) Function ",as.character(j)," of Lag Vectors",sep="")
-            for(i in 1:d_idx){
-              if(i==1){
-                graphics::matplot(x[[idx[i]]][,j],
-                                  lty = 1, xlab = "",ylim=range(z0),
-                                  main = main1[i], ylab = "",
-                                  lwd = 3, col = col2,xaxt="n",cex.axis=tickfont,type="l")
-              }else if(i==2){
-                #par(mar=c(5.1,4.1,3,2.1))
-                graphics::matplot(x[[idx[i]]][,j],
-                                  lty = 1, xlab = "",ylim=range(z0),
-                                  main = main1[i], ylab = "",
-                                  lwd = 3, col = col2,xaxt="n",yaxt="n",cex.axis=tickfont,type="l")
-
-
-              }else if(i==3){
-                graphics::matplot(x[[idx[i]]][,j],
-                                  lty = 1, xlab = "",ylim=range(z0),
-                                  main = main1[i], ylab = "",
-                                  lwd = 3, col = col2,cex.axis=tickfont,type="l")
-
-
-              }else{
-                graphics::matplot(x[[idx[i]]][,j],
-                                  lty = 1, xlab = "",ylim=range(z0),
-                                  main = main1[i], ylab = "",
-                                  lwd = 3, col = col2,yaxt="n",cex.axis=tickfont,type="l")
-
-
-                graphics::title(main=title0,xlab="Intraday Time",ylab="Temperature (C)",cex.lab=labelfont,outer=TRUE)
-              }
+        }else if(type =="lcurves" && ncol(x$Y@grid[[vars[j]]])==2){
+          cat("Notice: \"lcurves\" plotting option defined only for variables observed over one-dimensional domains. Plotting variable singular functions using \"lheats\".")
+          for(i in idx){
+            if(length(vars==1)){
+              y <- tibble::as_tibble(data.frame(y=c(x[[i]])))
+            }else{
+              y <- tibble::as_tibble(data.frame(y=c(x[[i]][[vars[j]]])))
             }
+            y$time <- as.factor(rep(1:L,each=nrow(x$Y@grid[[j]])))
+            y$x_1 <- rep(x$Y@grid[[j]][,1],L)
+            y$x_2 <- rep(x$Y@grid[[j]][,2],L)
+            print(ggplotly(ggplot(y,aes(x_1,x_2,fill=y,frame=time))+geom_tile()+scale_fill_distiller(palette = "RdYlBu")+theme_ipsum()+ggtitle(paste("Singular function",as.character(i),"of variable",as.character(vars[j])))))
+
           }
-          dev.off()
-
-
-        }
 
 
       }
 
-    }else{
-
-      stop("lcurves defined only for variables whose observations are curves")
-
     }
-    graphics::par(mfrow = c(1, 1))
+
+
   } else if (type == "vectors"){
-    titlefont <- 2 # font size of main title
-    subtitlefont <- 1.9 # font size of sub plots
     x0 <- c(apply(x$RVectrs[,idx],2,scale,center=F))
     D0 <- data.frame(x = x0,
                      time = rep(1L:K, d_idx))
     D0$groups <- factor(rep(main1,
-                               each = K), levels = main1)
+                            each = K), levels = main1)
     p1 <- lattice::xyplot(x ~ time |
-                            groups, data = D0, par.strip.text=list(cex=subtitlefont), xlab = "",
-                          ylab = "", main = list("(C) Singular Vectors",cex=2),lwd=3,
-                          scales = list(x = list(cex=c(1.4,1.4)),
-                                        y = list(cex=c(1.4, 1.4), # increase font size
-                                                 alternating=1,   # axes labels left/bottom
-                                                 tck = c(1,0))),
+                            groups, data = D0, xlab = "",
+                          ylab = "", main = "Singular vectors",
+                          scales = list(x = list(at = NULL),
+                                        y = list(at = NULL,relation="same")),
                           as.table = TRUE, type = "l")
     graphics::plot(p1)
   } else if (type == "paired"){
-    titlefont <- 1.3 # font size of main title
-    subtitlefont <- 1.2 # font size of sub plots
-    axisfont<-1.9
     d_idy <- length(idy)
     if(d_idx != d_idy) stop("The length of idx and idy must be same")
     x0 <- c(apply(x$RVectrs[,idx],2,scale,center=F))
@@ -556,7 +214,7 @@ plot.fssa <- function(x, d = length(x$values),
     main3 <- paste(main1, "vs", main2)
     D0$groups <- factor(rep(main3, each = K), levels = main3)
     p1 <- lattice::xyplot(x ~ y | groups,
-                          data = D0, xlab = "", par.strip.text=list(cex=subtitlefont),
+                          data = D0, xlab = "",
                           ylab = "", main = "Paired Singular vectors (Right)",
                           scales = list(x = list(at = NULL, relation="same"),
                                         y = list(at = NULL, relation="same")),
@@ -572,17 +230,14 @@ plot.fssa <- function(x, d = length(x$values),
     D0 <- data.frame(x = x0,
                      time = rep((0:floor(K/2))/K, d_idx))
     D0$groups <- factor(rep(main1,
-                               each = (floor(K/2) + 1)), levels = main1)
+                            each = (floor(K/2) + 1)), levels = main1)
     p1 <- lattice::xyplot(x ~ time |
                             groups, data = D0, xlab = "",
                           ylab = "", main = "Periodogram of Singular vectors",
                           scales = list(y = list(at = NULL, relation="same")),
                           as.table = TRUE, type = "l")
     graphics::plot(p1)
-    }else {
+  }else {
     stop("Unsupported type of fssa plot!")
-    }
-
-
-
+  }
 }

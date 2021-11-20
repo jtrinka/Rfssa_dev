@@ -13,7 +13,7 @@
 #' @note refer to \code{\link{fssa}} for an example on how to run this function starting from \code{\link{fssa}} objects
 #' @seealso \code{\link{fssa}}, \code{\link{fts}},
 #' @export
-freconstruct <- function(U, group = as.list(1L:10L)) {
-  if(length(U$Y@coefs)==1) out <- ufreconstruct(U,group) else out <- mfreconstruct(U,group)
+freconstruct <- function(U, groups = as.list(1L:10L)) {
+  if(length(U$Y@C)==1) out <- ufreconstruct(U,groups) else out <- mfreconstruct(U,groups)
   return(out)
 }
