@@ -17,7 +17,31 @@ ufreconstruct <- function(U, groups = as.list(1L:10L)) {
     S <- fH(S, d)
     Cx[, 1L:L] <- S[, 1L, ]
     Cx[, L:N] <- S[, ,L]
-    out[[i]] <- fts(list(basis%*%Cx),list(Y@B[[1]]),list(Y@grid[[1]]))
+    recon_out <- basis%*%Cx
+    if(ncol(Y@grid[[1]])==2){
+
+      x=unique(Y@grid[[1]][,1])
+      y=unique(Y@grid[[1]][,2])
+      recon_two_d=array(data=NA,dim=c(length(x),length(y),N))
+      for(n in 1:N){
+        count=1
+        for(i_1 in 1:length(x)){
+          for(i_2 in 1:length(y)){
+
+            recon_two_d[i_1,i_2,n]=recon_out[count,n]
+            count=count+1
+
+          }
+        }
+      }
+
+      recon_out=recon_two_d
+      new_grid=list(x,y)
+    }else{
+      new_grid=Y@grid[[1]]
+
+    }
+    out[[i]] <- Rfssa::fts(list(recon_out),list(Y@B[[1]]),list(new_grid))
   }
   out$values <- sqrt(U$values)
   return(out)

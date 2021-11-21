@@ -95,16 +95,22 @@ plot.fssa <- function(x, d = length(x$values),
     W <- fwcor(x, groups)
     wplot(W)
   }  else if (type == "lheats" || type == "lcurves") {
-
+      flag_1=0
+      flag_2=0
       if(is.null(vars)) vars=1:p;
 
       for(j in 1:length(vars)){
 
         if(type =="lheats" && ncol(x$Y@grid[[vars[j]]])==1){
+          flag_1=1
           n <- nrow(x$Y@grid[[vars[j]]])
           z <-c(0)
           for(i in idx){
-            z <- c(z,as.vector(t(x[[i]])))
+            if(p==1){
+              z <- c(z,as.vector(t(x[[i]])))
+            }else{
+              z <- c(z,as.vector(t(x[[i]][[vars[j]]])))
+            }
           }
           z=z[2:length(z)]
           D0 <- expand.grid(x = 1L:L,
@@ -125,23 +131,25 @@ plot.fssa <- function(x, d = length(x$values),
                                   main = title0,
                                   col.regions = grDevices::heat.colors(100))
 
+
           graphics::plot(p1)
         }else if(type =="lheats" && ncol(x$Y@grid[[vars[j]]])==2){
+          flag_2=1
           for(i in idx){
-            if(length(vars==1)){
+            if(p==1){
               y <- tibble::as_tibble(data.frame(y=c(x[[i]])))
             }else{
               y <- tibble::as_tibble(data.frame(y=c(x[[i]][[vars[j]]])))
             }
-            y$time <- as.factor(rep(1:L,each=nrow(x$Y@grid[[j]])))
-            y$x_1 <- rep(x$Y@grid[[j]][,1],L)
-            y$x_2 <- rep(x$Y@grid[[j]][,2],L)
+            y$time <- as.factor(rep(1:L,each=nrow(x$Y@grid[[vars[j]]])))
+            y$x_1 <- rep(x$Y@grid[[vars[j]]][,1],L)
+            y$x_2 <- rep(x$Y@grid[[vars[j]]][,2],L)
             print(ggplotly(ggplot(y,aes(x_1,x_2,fill=y,frame=time))+geom_tile()+scale_fill_distiller(palette = "RdYlBu")+theme_ipsum()+ggtitle(paste("Singular function",as.character(i),"of variable",as.character(vars[j])))))
 
           }
 
         }else if(type =="lcurves" && ncol(x$Y@grid[[vars[j]]])==1){
-
+          flag_1=1
           col2 <- grDevices::rainbow(L)
           d1 <- floor(sqrt(d_idx))
           d2 <- ceiling(d_idx/d1)
@@ -149,10 +157,10 @@ plot.fssa <- function(x, d = length(x$values),
                         mar = c(2, 2, 3, 1),oma=c(2,2,7,1),cex.main=1.6)
           title0 <- "Singular functions"
           if(p>1) title0 <- paste(title0,"of the variable",
-                                  ifelse(is.na(ylab),var,ylab))
+                                  ifelse(is.na(ylab),vars,ylab))
 
           for (i in 1:d_idx){
-            if(length(vars)==1){
+            if(p==1){
 
               graphics::matplot(x$Y@grid[[j]],x[[idx[i]]],type="l",
                            lty = 1, xlab = "",ylim=range(x[[idx[i]]]),
@@ -172,16 +180,17 @@ plot.fssa <- function(x, d = length(x$values),
           graphics::par(mfrow = c(1, 1))
 
         }else if(type =="lcurves" && ncol(x$Y@grid[[vars[j]]])==2){
-          cat("Notice: \"lcurves\" plotting option defined only for variables observed over one-dimensional domains. Plotting variable singular functions using \"lheats\".")
+          flag_2=1
+          warning("\"lcurves\" plotting option defined only for variables observed over one-dimensional domains. Plotting variable singular functions using \"lheats\".")
           for(i in idx){
-            if(length(vars==1)){
+            if(p==1){
               y <- tibble::as_tibble(data.frame(y=c(x[[i]])))
             }else{
               y <- tibble::as_tibble(data.frame(y=c(x[[i]][[vars[j]]])))
             }
-            y$time <- as.factor(rep(1:L,each=nrow(x$Y@grid[[j]])))
-            y$x_1 <- rep(x$Y@grid[[j]][,1],L)
-            y$x_2 <- rep(x$Y@grid[[j]][,2],L)
+            y$time <- as.factor(rep(1:L,each=nrow(x$Y@grid[[vars[j]]])))
+            y$x_1 <- rep(x$Y@grid[[vars[j]]][,1],L)
+            y$x_2 <- rep(x$Y@grid[[vars[j]]][,2],L)
             print(ggplotly(ggplot(y,aes(x_1,x_2,fill=y,frame=time))+geom_tile()+scale_fill_distiller(palette = "RdYlBu")+theme_ipsum()+ggtitle(paste("Singular function",as.character(i),"of variable",as.character(vars[j])))))
 
           }
@@ -189,7 +198,11 @@ plot.fssa <- function(x, d = length(x$values),
 
       }
 
-    }
+      }
+
+      if(flag_1==1 && flag_2==1){
+        warning("The plots of singular functions for variables observed over one-dimensional domains can be found in the \"plots\" tab while plots of singular functions corresponding to variables observed over two-dimensional domains can be found in the \"viewer\" tab.")
+      }
 
 
   } else if (type == "vectors"){

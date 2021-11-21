@@ -52,6 +52,16 @@
 #' @export
 fforecast <- function(U, groups=list(c(1)), h = 1, method = "recurrent",tol=10^-3){
 
+   for(j in 1:length(U$Y@C)){
+
+      if(ncol(U$Y@grid[[j]])>1){
+
+         stop('Current forecasting routines only support fts whose variables are observed over one-dimensional domains. The forecasting routines will be updated later to support fts variables observed over domains whose dimensions are greater than one.')
+
+      }
+
+   }
+
  if(length(U$Y@C)==1){
 
    out=ufforecast(U=U, groups=groups, h = h, method = method,tol=tol)

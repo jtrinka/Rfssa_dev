@@ -59,6 +59,7 @@ fts <- function(X, B, grid){
       }else if(length(grid[[j]][[1]])>2 && length(grid[[j]][[2]])==2){
         # This case is similar as seen in the previous else if statement
         # Example: list(u,c(1,2))
+
         v=seq(grid[[j]][[2]][1],grid[[j]][[2]][2],length.out=nrow(X[[j]]))
         M_x = length(grid[[j]][[1]])
         M_y = length(v)
@@ -68,6 +69,7 @@ fts <- function(X, B, grid){
         y_max = max(v)
 
       }else{
+
         # If the grid is specified with the actual grid in the horizontal and vertical axes.
         # Example: list(u,v)
         M_x = length(grid[[j]][[1]])
@@ -85,6 +87,7 @@ fts <- function(X, B, grid){
 
       # If the fts only contains one observation
       if(length(dim(X[[j]]))==2){
+
         X_temp=matrix(data=NA,nrow=M_x*M_y,ncol=1)
         count=1
         for(i in 1:M_x){
@@ -100,6 +103,7 @@ fts <- function(X, B, grid){
 
       # If the fts contains more than one observation
       }else if(length(dim(X[[j]]))==3){
+
         N=dim(X[[j]])[3]
         X_temp=matrix(data=NA,nrow=M_x*M_y,ncol=N)
         for(n in 1:N){
@@ -208,6 +212,7 @@ fts <- function(X, B, grid){
 
     }
     # Estimate the coefficients of each fts variable using basis elements and observed data.
+
     fts@C[[j]]=solve(t(B[[j]])%*%B[[j]])%*%t(B[[j]])%*%X[[j]]
 
     if(is.null(colnames(fts@C[[j]]))==TRUE){

@@ -1,4 +1,5 @@
 ufforecast <- function(U, groups=list(c(1)), h = 1, method = "recurrent",tol=10^-3){
+
   out=list()
   for(a in 1:length(groups)){
     g = groups[[a]]

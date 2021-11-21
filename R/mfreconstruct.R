@@ -11,6 +11,7 @@ mfreconstruct <-function(U, groups = as.list(1L:10L)){
     basis[[j]] <- U$Y@B[[j]]
   }
   recon_out <- list()
+  new_grid=list()
   # Loop over groups
   for(i in 1L:m){
     recon_out_j <- list()
@@ -37,9 +38,36 @@ mfreconstruct <-function(U, groups = as.list(1L:10L)){
       C_jx[,1L:L] <- S_jx[, 1L,]
       C_jx[,L:N] <- S_jx[,,L]
       recon_out_j[[j]] <- basis[[j]]%*%C_jx
+      if(ncol(Y@grid[[j]])==2){
+
+        x=unique(Y@grid[[j]][,1])
+        y=unique(Y@grid[[j]][,2])
+        recon_two_d=array(data=NA,dim=c(length(x),length(y),N))
+        for(n in 1:N){
+          count=1
+          for(i_1 in 1:length(x)){
+            for(i_2 in 1:length(y)){
+
+               recon_two_d[i_1,i_2,n]=recon_out_j[[j]][count,n]
+               count=count+1
+
+            }
+          }
+        }
+
+        recon_out_j[[j]]=recon_two_d
+        new_grid[[j]]=list(x,y)
+      }else{
+        new_grid[[j]]=Y@grid[[j]]
+
+      }
+
     }
+
+
+
     # output the reconstructions
-    recon_out[[i]] <- fts(X=recon_out_j,B=basis,grid=Y@grid)
+    recon_out[[i]] <- Rfssa::fts(X=recon_out_j,B=basis,grid=new_grid)
   }
   recon_out$values <- U$values
   return(recon_out)

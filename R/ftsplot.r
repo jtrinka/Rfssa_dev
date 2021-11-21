@@ -5,7 +5,7 @@
 #' \code{\link{fts}} data using a variety of techniques that use plotly.
 #'
 #' @param x an object of class \code{\link{fts}}
-#' @param type the type of plot to be displayed where possible types are:
+#' @param types the types of plot to be displayed where possible types are:
 #' \itemize{
 #' \item \code{"line"} plot the \code{\link{fts}} elements in a line plot (default)
 #' \item \code{"heatmap"} plot the \code{\link{fts}} elements in a heat map
@@ -17,7 +17,7 @@
 #' @param ylab the y-axis label
 #' @param xlab the x-axis label
 #' @param tlab the time-axis label
-#' @param var an integer specifying the variable number to plot if \code{type="3Dsurface"} or \code{type="3Dline"}
+#' @param var an integer specifying the variable number to plot if \code{types="3Dsurface"} or \code{types="3Dline"}
 #' @param ... arguments to be passed to methods, such as graphical parameters.
 #' @importFrom plotly plot_ly add_lines layout subplot add_surface hide_colorbar
 #' @importFrom hrbrthemes theme_ipsum
@@ -33,32 +33,31 @@
 #' basis=create.bspline.basis(rangeval = c(0,1),nbasis = d) # create basis object
 #' smooth.calls=smooth.basis(u, matrix(nrow=240,ncol=365,Callcenter$calls), basis)
 #' Y=fts(smooth.calls$fd) # create functional time series
-#' plot(Y,type = "heatmap")
-#' plot(Y,type = "line",var = 1)
-#' plot(Y,type = "3Dsurface",var = 1)
-#' plot(Y,type = "3Dline",var = 1)
+#' plot(Y,types = "heatmap")
+#' plot(Y,types = "line",var = 1)
+#' plot(Y,types = "3Dsurface",var = 1)
+#' plot(Y,types = "3Dline",var = 1)
 #' }
 #'
 #' @note for a multivariate example, see the examples in \code{\link{fssa}}
 #'
 #'
 #' @export
-plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,xlabels=NULL,tlabels=NULL,zlabels=NULL, ...){
+plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,xlabels=NULL,tlabels=NULL,zlabels=NULL, ...){
 
   p <- length(Y@C)
   N <- ncol(Y@C[[1]])
   time <- colnames(Y@C[[1]])
   count_twod <- 0
-  heatmap_flag<-0
   Pl <- list()
 
-  if(is.null(type)) type=rep(NA,p);
+  if(is.null(types)) types=rep(NA,p);
   if(is.null(ylabels)) ylabels=rep(NA,p);
   if(is.null(xlabels)) xlabels=rep(NA,p);
   if(is.null(tlabels)) tlabels=rep(NA,p);
   if(is.null(zlabels)) zlabels=rep(NA,p);
   if(is.null(main)) main=rep(NA,p);
-  if(is.null(vars) == FALSE && length(type)!=length(vars)) return(stop("\"vars\" and \"type\" should be the same length."));
+  if(is.null(vars) == FALSE && length(types)!=length(vars)) return(stop("\"vars\" and \"types\" should be the same length."));
 
 
   if(is.null(vars)==TRUE){
@@ -66,12 +65,12 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
 
       if(ncol(Y@grid[[j]])==1){
 
-        if(is.na(type[j])==TRUE||type[j]=="line"){
+        if(is.na(types[j])==TRUE||types[j]=="line"){
 
           if(is.na(ylabels[j])) ylabels[j] <- "y";
           if(is.na(xlabels[j])) xlabels[j] <- "x";
           if(is.na(main[j]) && p==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",j);
-          if(subplot==TRUE && length(type)>1) main[j]=NA
+          if(subplot==TRUE && length(types)>1) main[j]=NA
           y <- tibble::as_tibble(data.frame(y=c(Y@B[[j]]%*%Y@C[[j]])))
           y$time <- as.factor(rep(time,each=nrow(Y@grid[[j]])))
           y$x <- rep(1:nrow(Y@grid[[j]]),ncol(Y@C[[j]]))
@@ -82,18 +81,18 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
           layout(title=main[j],xaxis = list(title = xlabels[j]),yaxis = list(title =ylabels[j]))
 
 
-        }else if(type[j]=="heatmap"){
+        }else if(types[j]=="heatmap"){
 
-          heatmap_flag=1
+
           if(is.na(ylabels[j])) ylabels[j] <- "x";
           if(is.na(xlabels[j])) tlabels[j] <- "t";
           if(is.na(main[j]) && p==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",j);
-          if(subplot==TRUE && length(type)>1) main[j]=NA
+          if(subplot==TRUE && length(types)>1) main[j]=NA
           z0 <- Y@B[[j]]%*%Y@C[[j]]
-          Pl[[j]] <- plot_ly(z = z0, x=time, y = u, type = "heatmap", colorscale = list(c(0,'#FFFFFAFF'), c(1,'#FF0000FF')),
+          Pl[[j]] <- plot_ly(z = z0, x=time, y = u, types = "heatmap", colorscale = list(c(0,'#FFFFFAFF'), c(1,'#FF0000FF')),
                              showscale =FALSE) %>%
             layout(title = main[j], yaxis = list(title = ylabels[j]),xaxis = list(title = tlabels[j]))
-        }else if(type[j]=="3Dsurface"){
+        }else if(types[j]=="3Dsurface"){
 
           z0 <- Y@B[[j]]%*%Y@C[[j]]
           axx <-axy <-axz <- list(
@@ -107,7 +106,7 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
             layout(scene = list(xaxis = axx, yaxis = axy, zaxis = axz))%>%
             add_surface(showscale=FALSE)
 
-        }else if (type[j]=="3Dline"){
+        }else if (types[j]=="3Dline"){
 
           D0 <- tibble::as_tibble(data.frame(z=c(Y@B[[j]]%*%Y@C[[j]])))
           D0$time <- rep(time,each=nrow(Y@grid[[j]]))
@@ -129,7 +128,7 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
         }
 
       }else{
-        if(is.na(type[j])==FALSE && type[j]!="heatmap") cat("Notice: The only plotting option available for variables observed over two-dimensional domains is \"heatmap\". Future plotting options will be added for these types of variables in the future.");
+        if(is.na(types[j])==FALSE && types[j]!="heatmap") cat("Notice: The only plotting option available for variables observed over two-dimensional domains is \"heatmap\". Future plotting options will be added for these types of variables in the future.");
         count_twod=count_twod+1
         if(is.na(ylabels[j])) ylabels[j] <- "y";
         if(is.na(xlabels[j])) xlabels[j] <- "x";
@@ -154,7 +153,7 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
 
       if(ncol(Y@grid[[vars[j]]])==1){
 
-        if(is.na(type[j])==TRUE||type[j]=="line"){
+        if(is.na(types[j])==TRUE||types[j]=="line"){
 
           if(is.na(ylabels[j])) ylabels[j] <- "y";
           if(is.na(xlabels[j])) xlabels[j] <- "x";
@@ -170,17 +169,17 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
             layout(title=main[j],yaxis = list(title = ylabels[j]),xaxis = list(title = xlabels[j]))
 
 
-        }else if(type[j]=="heatmap"){
-          heatmap_flag=1
+        }else if(types[j]=="heatmap"){
+
           if(is.na(ylabels[j])) ylabels[j] <- "x";
           if(is.na(xlabels[j])) tlabels[j] <- "t";
           if(is.na(main[j]) && length(vars)==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",vars[j]);
           if(subplot==TRUE && length(vars)>1) main[j]=NA
           z0 <- Y@B[[vars[j]]]%*%Y@C[[vars[j]]]
-          Pl[[j]] <- plot_ly(z = z0, x=time, y = u, type = "heatmap", colorscale = list(c(0,'#FFFFFAFF'), c(1,'#FF0000FF')),
+          Pl[[j]] <- plot_ly(z = z0, x=time, y = u, types = "heatmap", colorscale = list(c(0,'#FFFFFAFF'), c(1,'#FF0000FF')),
                              showscale =FALSE) %>%
             layout(title = main[j], yaxis = list(title = ylabels[j]),xaxis = list(title = tlabels[j]))
-        }else if(type[j]=="3Dsurface"){
+        }else if(types[j]=="3Dsurface"){
 
           z0 <- Y@B[[vars[j]]]%*%Y@C[[vars[j]]]
           axx <-axy <-axz <- list(
@@ -194,7 +193,7 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
             layout(scene = list(xaxis = axx, yaxis = axy, zaxis = axz))%>%
             add_surface(showscale=FALSE)
 
-        }else if (type[j]=="3Dline"){
+        }else if (types[j]=="3Dline"){
 
           D0 <- tibble::as_tibble(data.frame(z=c(Y@B[[vars[j]]]%*%Y@C[[vars[j]]])))
           D0$time <- rep(time,each=nrow(Y@grid[[vars[j]]]))
@@ -216,7 +215,7 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
         }
 
       }else{
-        if(is.na(type[j])==FALSE && type[j]!="heatmap") cat("Notice: The only plotting option available for variables observed over two-dimensional domains is \"heatmap\". Future plotting options will be added for these types of variables in the future.");
+        if(is.na(types[j])==FALSE && types[j]!="heatmap") cat("Notice: The only plotting option available for variables observed over two-dimensional domains is \"heatmap\". Future plotting options will be added for these types of variables in the future.");
         count_twod=count_twod+1
         if(is.na(ylabels[j])) ylabels[j] <- "y";
         if(is.na(xlabels[j])) xlabels[j] <- "x";
@@ -239,28 +238,24 @@ plot.fts <- function(Y,vars=NULL,type=NULL,subplot=TRUE,main=NULL,ylabels=NULL,x
 
   }
 
-  if(count_twod>1){
+  if(count_twod>=1){
 
     print(Pl)
 
   }else{
 
-    if("3Dsurface"%in%type || "3Dline"%in%type){
+    if("3Dsurface"%in%types || "3Dline"%in%types){
 
       print(Pl)
 
-    }else if("3Dsurface"%in%type==FALSE && subplot!=TRUE || "3Dline"%in%type==FALSE && subplot!=TRUE){
-
-      print(Pl)
-
-    }else if(heatmap_flag==1 && count_twod==1){
+    }else if("3Dsurface"%in%types==FALSE && subplot!=TRUE || "3Dline"%in%types==FALSE && subplot!=TRUE){
 
       print(Pl)
 
     }else{
 
 
-      suppressWarnings(print(subplot(Pl)))
+      print(subplot(Pl))
 
     }
   }

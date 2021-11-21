@@ -1,10 +1,10 @@
 # Univariate and multivariate weighted correlation used to find weighted correlation matrix for the grouping stage
 # of ufssa and mfssa.
 
-ufwcor <- function(U, group) {
-  if(is.numeric(group)) group <- as.list(group)
-  d <- length(group)
-  Q <- freconstruct(U, group = group)
+ufwcor <- function(U, groups) {
+  if(is.numeric(groups)) groups <- as.list(groups)
+  d <- length(groups)
+  Q <- freconstruct(U, groups = groups)
   N <- U$N
   L <- U$L
   K <- N - L + 1L
@@ -29,10 +29,10 @@ ufwcor <- function(U, group) {
   return(out)
 }
 
-mfwcor <- function(U, group) {
-  if(is.numeric(group)) group <- as.list(group)
-  d <- length(group)
-  Q <- mfreconstruct(U, group = group)
+mfwcor <- function(U, groups) {
+  if(is.numeric(groups)) groups <- as.list(groups)
+  d <- length(groups)
+  Q <- mfreconstruct(U, groups = groups)
   N <- U$N
   L <- U$L
   K <- N - L + 1L
@@ -79,7 +79,7 @@ mfwcor <- function(U, group) {
 #' @return a square matrix of w-correlation values for the reconstructed \code{\link{fts}} objects that were built from
 #' \code{\link{fssa}} components
 #' @param U an object of class \code{\link{fssa}}
-#' @param group a list or vector of indices which determines the grouping used for the reconstruction
+#' @param groups a list or vector of indices which determines the grouping used for the reconstruction
 #' in pairwise w-correlations matrix
 #' @examples
 #'
@@ -103,7 +103,7 @@ mfwcor <- function(U, group) {
 #' ## Decomposition stage of univariate functional singular spectrum analysis
 #' L <- 28
 #' U <- fssa(Y,L)
-#' ufwcor=fwcor(U = U,group = list(1,2,3))
+#' ufwcor=fwcor(U = U,groups = list(1,2,3))
 #' wplot(W=ufwcor)
 #'
 #' ## Multivariate W-Correlation Example on Bivariate Satelite Image Data
@@ -132,14 +132,14 @@ mfwcor <- function(U, group) {
 #' L=45
 #' ## Decomposition stage of multivariate functional singular spectrum analysis
 #' U=fssa(Y,L)
-#' mfwcor=fwcor(U = U,group = list(1,2,3,4))
+#' mfwcor=fwcor(U = U,groups = list(1,2,3,4))
 #' wplot(W=mfwcor)
 #' }
 #'
 #'
 #' @seealso \code{\link{fssa}}, \code{\link{freconstruct}}, \code{\link{fts}}, \code{\link{wplot}}
 #' @export
-fwcor <- function(U, group) {
-  if(length(U$Y@C)==1) out <- ufwcor(U, group) else out <- mfwcor(U, group)
+fwcor <- function(U, groups) {
+  if(length(U$Y@C)==1) out <- ufwcor(U, groups) else out <- mfwcor(U, groups)
   return(out)
 }
