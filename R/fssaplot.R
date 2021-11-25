@@ -68,7 +68,7 @@ plot.fssa <- function(x, d = length(x$values),
                       groups = as.list(1:d),
                       type = "values",vars=NULL,ylab=NA, ...) {
   p <- length(x$Y@C)
-  A <- ((x$values)/sum(x$values))[1L:d]
+  A <- ((x$values)/sum(x$values))
   pr <- round(A * 100L, 2L)
   idx <- sort(idx)
   idy <- sort(idy)

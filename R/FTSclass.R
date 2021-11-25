@@ -1,8 +1,14 @@
 #' Functional Time Series Class
 #'
-#' This function is used to create functional time series objects from functional data (fd) objects.
-#' @param Y  an object of class fd or a list of objects of class fd
-#' @param time the vector of times at which a time series was sampled
+#' This function is used to create functional time series (fts) objects from lists of discretely sampled data, basis specifications, and grid elements which provide the domain that each variable is observed over.
+#' @param X  A list of length \eqn{p} where \eqn{p} is a positive integer specifying the number of variables observed in the fts. Each entry in the list should be a matrix or
+#' an array. For a variable observed over a one-dimensional domain, the list entry should be a \eqn{m \times N} matrix where \eqn{m} is the number of sampling points for each observation and \eqn{N} is the number of observations.
+#' For a variable observed over a two-dimensional domain, the list entry should be a \eqn{m_1 \times m_2 \times N} array where \eqn{m_1} is the number of sampling points in the horizontal direction and
+#' \eqn{m_2} is the number of sampling points in the vertical direction.
+#' @param B A list of length \eqn{p}. Each entry in the list should be either a matrix specifying the basis for each variable or each list entry should be a list specifying the degrees of freedom and desired basis type to be used in the smoothing process.
+#' For a variable observed over a one-dimensional domain, the list entry should be a \eqn{m \times d} matrix or the list entry should be a list of the form, "list(\eqn{d}, "basistype")", where \eqn{d} specifies the number basis elements and "basistype" is a string that is set to "bspline" or "fourier" to specify the type of basis.
+#' For a variable observed over a two-dimensional domain, the list entry should be a \eqn{m_1 m_2 \times d_1 d_2} matrix or the list entry should be a list of the form, "list(\eqn{d_1},\eqn{d_2},"basistype1","basistype2")", where \eqn{d_1} specifies the number of basis elements in the horizontal direction, \eqn{d_2} specifies the number of basis elements in the vertical direction, "basistype1" is set to be "bspline" or "fourier" which specifies the type of basis in the horizontal direction, and "basistype2" is set to be "bspline" or "fourier" which specifies the type of basis in the vertical direction.
+#' @param grid A list of length \eqn{p}
 #' @seealso \code{\link{fssa}}
 #' @note refer to \code{\link{fssa}} for an example on how to run this function starting from fd objects
 #' @export
@@ -54,6 +60,7 @@ fts <- function(X, B, grid){
         x_max = max(u)
         y_min = min(grid[[j]][[2]])
         y_max = max(grid[[j]][[2]])
+        v=grid[[j]][[2]]
 
 
       }else if(length(grid[[j]][[1]])>2 && length(grid[[j]][[2]])==2){
@@ -67,6 +74,7 @@ fts <- function(X, B, grid){
         x_max = max(grid[[j]][[1]])
         y_min = min(v)
         y_max = max(v)
+        u=grid[[j]][[1]]
 
       }else{
 
