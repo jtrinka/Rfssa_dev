@@ -1,7 +1,7 @@
 #' Correlation for Functional Time Series Objects
 #'
-#' This function finds the correlation between univarite or multivariate functional time series (\code{\link{fts}}) objects.
-#' @return a scalar that is the correlation between \code{\link{fts}} objects
+#' This function finds the correlation between univariate or multivariate functional time series (\code{\link{fts}}) objects.
+#' @return a scalar that is the correlation between \code{\link{fts}} objects.
 #' @param Y1 an object of class \code{\link{fts}}
 #' @param Y2 an object of class \code{\link{fts}}
 #'
@@ -11,7 +11,6 @@
 #' @examples
 #'
 #' \dontrun{
-#' require(fda)
 #' require(Rfssa)
 #' ## Raw image data
 #' NDVI=Jambi$NDVI
@@ -23,15 +22,12 @@
 #'   D0_NDVI[,i] <- density(NDVI[,,i],from=0,to=1)$y
 #'   D0_EVI[,i] <- density(EVI[,,i],from=0,to=1)$y
 #' }
-#' ## Define functional objects
 #' d <- 11
-#' basis <- create.bspline.basis(c(0,1),d)
 #' u <- seq(0,1,length.out = 512)
-#' y_NDVI <- smooth.basis(u,as.matrix(D0_NDVI),basis)$fd
-#' y_EVI <- smooth.basis(u,as.matrix(D0_EVI),basis)$fd
-#' Y_NDVI <- fts(y_NDVI)
-#' Y_EVI <- fts(y_EVI)
-#' cor.fts(Y_NDVI,Y_EVI)
+#' Y_1 = fts(list(D0_NDVI),list(list(d,"bspline")),list(u))
+#' Y_2 = fts(list(D0_EVI),list(list(d,"bspline")),list(u))
+#' out = cor.fts(Y_1,Y_2)
+#' print(out)
 #' }
 #'
 #' @export
@@ -52,10 +48,14 @@ cor.fts <- function(Y1, Y2) {
   G = list()
   Y1_list=list()
   Y2_list=list()
-  for(j in 1:p){
-    G[[j]] = inprod(Y1@B[[j]],Y1@B[[j]])
-    Y1_list[[j]]=Y1@C[[j]]
-    Y2_list[[j]]=Y2@C[[j]]
+  for(i in 1:p){
+    if(ncol(Y1@grid[[i]])==1){
+      G[[i]] <- t(onedG(A=Y1@B[[i]],B=Y1@B[[i]],grid = Y1@grid[[i]]))
+    }else{
+      G[[i]] <- t(twodG(A=Y1@B[[i]],B=Y1@B[[i]],grid = Y1@grid[[i]]))
+    }
+    Y1_list[[i]]=Y1@C[[i]]
+    Y2_list[[i]]=Y2@C[[i]]
   }
 
   wcor <- mwinprod(Y1_list, Y2_list, w, G, p)/sqrt(mwinprod(Y1_list,Y1_list, w, G, p) * mwinprod(Y2_list,Y2_list, w, G, p))

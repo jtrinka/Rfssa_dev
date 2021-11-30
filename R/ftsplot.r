@@ -4,50 +4,38 @@
 #' This is a plotting method for univariate or multivariate functional time series (\code{\link{fts}}). This method is designed to help the user visualize
 #' \code{\link{fts}} data using a variety of techniques that use plotly.
 #'
-#' @param x an object of class \code{\link{fts}}
-#' @param types the types of plot to be displayed where possible types are:
+#' @param x An object of class \code{\link{fts}}.
+#' @param vars A numeric specifying which variables in the fts to plot. The default is to plot all variables in succession. Note as well that variable indices may be repeated.
+#' @param types A tuple of strings specifying the types of plots to be displayed where possible types for fts variables observed over a one-dimensional domain are:
 #' \itemize{
 #' \item \code{"line"} plot the \code{\link{fts}} elements in a line plot (default)
 #' \item \code{"heatmap"} plot the \code{\link{fts}} elements in a heat map
 #' \item \code{"3Dsurface"} plot the \code{\link{fts}} elements as a surface
-#' \item \code{"3Dline"} plot the \code{\link{fts}} elements in a three-dimensional line plot
+#' \item \code{"3Dline"} plot the \code{\link{fts}} elements in a three-dimensional line plot.
 #' }
-#' @param npts number of points to evaluate functional object at
-#' @param main the main title
-#' @param ylab the y-axis label
-#' @param xlab the x-axis label
-#' @param tlab the time-axis label
-#' @param var an integer specifying the variable number to plot if \code{types="3Dsurface"} or \code{types="3Dline"}
+#' The current plot type supported for fts variables observed over a two-dimensional domain is \code{"heatmap"}. Also note that
+#' the same variable may be plotted several times using many different type options.
+#' @param subplot A logical specifying whether or not line plots should be plotted in a subplot or not. The default is \code{TRUE} and if any other plot type is provided, the value is switched to \code{FALSE}.
+#' @param mains A tuple of strings providing the the main titles of each plot.
+#' @param ylabels A tuple of strings providing the the y-axis titles of each plot.
+#' @param xlabels A tuple of strings providing the the x-axis titles of each plot.
+#' @param tlabels A tuple of strings providing the the time-axis titles of each plot.
+#' @param zlabels A tuple of strings providing the the z-axis titles of each plot.
 #' @param ... arguments to be passed to methods, such as graphical parameters.
-#' @importFrom plotly plot_ly add_lines layout subplot add_surface hide_colorbar
+#' @importFrom plotly plot_ly add_lines layout subplot add_surface hide_colorbar ggplotly
+#' @importFrom ggplot2 ggplot aes geom_tile scale_fill_distiller xlab ylab labs ggtitle
 #' @importFrom hrbrthemes theme_ipsum
+#' @importFrom tibble as_tibble
 #' @import dplyr
-#' @examples
 #'
-#' \dontrun{
-#' require(fda)
-#' require(Rfssa)
-#' data(Callcenter) # Read data
-#' u=seq(0,1,length.out=240) # Define domain of functional data
-#' d=12 # number of basis elements
-#' basis=create.bspline.basis(rangeval = c(0,1),nbasis = d) # create basis object
-#' smooth.calls=smooth.basis(u, matrix(nrow=240,ncol=365,Callcenter$calls), basis)
-#' Y=fts(smooth.calls$fd) # create functional time series
-#' plot(Y,types = "heatmap")
-#' plot(Y,types = "line",var = 1)
-#' plot(Y,types = "3Dsurface",var = 1)
-#' plot(Y,types = "3Dline",var = 1)
-#' }
-#'
-#' @note for a multivariate example, see the examples in \code{\link{fssa}}
-#'
+#' @note For examples, see \code{\link{fssa}}
 #'
 #' @export
-plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,xlabels=NULL,tlabels=NULL,zlabels=NULL, ...){
+plot.fts <- function(x,vars=NULL,types=NULL,subplot=TRUE,mains=NULL,ylabels=NULL,xlabels=NULL,tlabels=NULL,zlabels=NULL, ...){
 
-  p <- length(Y@C)
-  N <- ncol(Y@C[[1]])
-  time <- colnames(Y@C[[1]])
+  p <- length(x@C)
+  N <- ncol(x@C[[1]])
+  time <- colnames(x@C[[1]])
   count_twod <- 0
   Pl <- list()
 
@@ -56,45 +44,46 @@ plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,
   if(is.null(xlabels)) xlabels=rep(NA,p);
   if(is.null(tlabels)) tlabels=rep(NA,p);
   if(is.null(zlabels)) zlabels=rep(NA,p);
-  if(is.null(main)) main=rep(NA,p);
-  if(is.null(vars) == FALSE && length(types)!=length(vars)) return(stop("\"vars\" and \"types\" should be the same length."));
+  if(is.null(mains)) mains=rep(NA,p);
+  if(is.null(vars) == FALSE && length(types)!=length(vars)) warning("\"vars\" and \"types\" are not the same length. Some plots might not appear as expected.");
 
 
   if(is.null(vars)==TRUE){
     for(j in 1:p){
 
-      if(ncol(Y@grid[[j]])==1){
+      if(ncol(x@grid[[j]])==1){
 
         if(is.na(types[j])==TRUE||types[j]=="line"){
 
-          if(is.na(xlabels[j])) ylabels[j] <- "y";
-          if(is.na(tlabels[j])) xlabels[j] <- "x";
-          if(is.na(main[j]) && p==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",j);
-          if(subplot==TRUE && length(types)>1) main[j]=NA
-          y <- tibble::as_tibble(data.frame(y=c(Y@B[[j]]%*%Y@C[[j]])))
-          y$time <- as.factor(rep(time,each=nrow(Y@grid[[j]])))
-          y$x <- rep(1:nrow(Y@grid[[j]]),ncol(Y@C[[j]]))
+          if(is.na(ylabels[j])) ylabels[j] <- "y";
+          if(is.na(xlabels[j])) xlabels[j] <- "x";
+          if(is.na(mains[j]) && p==1 || is.na(mains[j]) && subplot==FALSE) mains[j] <- paste("Variable",j);
+          if(subplot==TRUE && length(types)>1) mains[j]=NA
+          y <- tibble::as_tibble(data.frame(y=c(x@B[[j]]%*%x@C[[j]])))
+          y$time <- as.factor(rep(time,each=nrow(x@grid[[j]])))
+          y$x <- rep(1:nrow(x@grid[[j]]),ncol(x@C[[j]]))
           Pl[[j]] <- y %>%
           group_by(time) %>%
           plot_ly(x=~x,y=~y) %>%
           add_lines(color = ~time,colors=c("lightsteelblue","royalblue4"),showlegend=FALSE) %>%
-          layout(title=main[j],xaxis = list(title = xlabels[j]),yaxis = list(title =ylabels[j]))
+          layout(title=mains[j],xaxis = list(title = xlabels[j]),yaxis = list(title =ylabels[j]))
 
 
         }else if(types[j]=="heatmap"){
 
 
-          if(is.na(ylabels[j])) xlabels[j] <- "x";
-          if(is.na(xlabels[j])) tlabels[j] <- "t";
-          if(is.na(main[j]) && p==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",j);
-          if(subplot==TRUE && length(types)>1) main[j]=NA
-          z0 <- Y@B[[j]]%*%Y@C[[j]]
+          if(is.na(xlabels[j])) xlabels[j] <- "x";
+          if(is.na(ylabels[j])) tlabels[j] <- "t";
+          if(is.na(mains[j]) && p==1 || is.na(mains[j]) && subplot==FALSE) mains[j] <- paste("Variable",j);
+          if(subplot==TRUE && length(types)>1) mains[j]=NA
+          u=seq(x@grid[[j]])
+          z0 <- x@B[[j]]%*%x@C[[j]]
           Pl[[j]] <- plot_ly(z = z0, x=time, y = u, type = "heatmap", colorscale = list(c(0,'#FFFFFAFF'), c(1,'#FF0000FF')),
                              showscale =FALSE) %>%
-            layout(title = main[j], yaxis = list(title = xlabels[j]),xaxis = list(title = tlabels[j]))
+            layout(title = mains[j], yaxis = list(title = xlabels[j]),xaxis = list(title = tlabels[j]))
         }else if(types[j]=="3Dsurface"){
-
-          z0 <- Y@B[[j]]%*%Y@C[[j]]
+          u=seq(x@grid[[j]])
+          z0 <- x@B[[j]]%*%x@C[[j]]
           axx <-axy <-axz <- list(
             gridcolor="rgb(180, 180, 180)",
             zerolinecolor="rgb(255,255,255)"
@@ -108,9 +97,9 @@ plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,
 
         }else if (types[j]=="3Dline"){
 
-          D0 <- tibble::as_tibble(data.frame(z=c(Y@B[[j]]%*%Y@C[[j]])))
-          D0$time <- rep(time,each=nrow(Y@grid[[j]]))
-          D0$x <- rep(1:nrow(Y@grid[[j]]),ncol(Y@C[[j]]))
+          D0 <- tibble::as_tibble(data.frame(z=c(x@B[[j]]%*%x@C[[j]])))
+          D0$time <- rep(time,each=nrow(x@grid[[j]]))
+          D0$x <- rep(1:nrow(x@grid[[j]]),ncol(x@C[[j]]))
           axx <-axy <-axz <- list(
             gridcolor="rgb(180, 180, 180)",
             zerolinecolor="rgb(255,255,255)"
@@ -133,14 +122,17 @@ plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,
         if(is.na(ylabels[j])) ylabels[j] <- "y";
         if(is.na(xlabels[j])) xlabels[j] <- "x";
         if(is.na(zlabels[j])) zlabels[j] <- "z";
-        if(is.na(main[j])) main[j] <- paste("Variable",j);
-        y <- tibble::as_tibble(data.frame(y=c(Y@B[[j]]%*%Y@C[[j]])))
-        time=as.character(1:ncol(Y@C[[1]]))
-        y$time <- as.factor(rep(time,each=nrow(Y@grid[[j]])))
-        y$x_1 <- rep(Y@grid[[j]][,1],ncol(Y@C[[j]]))
-        y$x_2 <- rep(Y@grid[[j]][,2],ncol(Y@C[[j]]))
+        if(is.na(mains[j])) mains[j] <- paste("Variable",j);
+        x_1=NULL
+        x_2=NULL
+        time=NULL
+        y <- tibble::as_tibble(data.frame(y=c(x@B[[j]]%*%x@C[[j]])))
+        time=as.character(1:ncol(x@C[[1]]))
+        y$time <- as.factor(rep(time,each=nrow(x@grid[[j]])))
+        y$x_1 <- rep(x@grid[[j]][,1],ncol(x@C[[j]]))
+        y$x_2 <- rep(x@grid[[j]][,2],ncol(x@C[[j]]))
         Pl[[j]] <- ggplotly(ggplot(y,aes(x_1,x_2,fill=y,frame=time))+geom_tile()+scale_fill_distiller(palette = "RdYlBu")+theme_ipsum()+xlab(xlabels[j])+
-                              ylab(ylabels[j])+labs(fill=zlabels[j])+ggtitle(main[j]))
+                              ylab(ylabels[j])+labs(fill=zlabels[j])+ggtitle(mains[j]))
         }
 
 
@@ -151,37 +143,37 @@ plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,
 
     for(j in 1:length(vars)){
 
-      if(ncol(Y@grid[[vars[j]]])==1){
+      if(ncol(x@grid[[vars[j]]])==1){
 
         if(is.na(types[j])==TRUE||types[j]=="line"){
 
           if(is.na(ylabels[j])) ylabels[j] <- "y";
           if(is.na(xlabels[j])) xlabels[j] <- "x";
-          if(is.na(main[j]) && length(vars)==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",vars[j]);
-          if(subplot==TRUE && length(vars)>1) main[j]=NA
-          y <- tibble::as_tibble(data.frame(y=c(Y@B[[vars[j]]]%*%Y@C[[vars[j]]])))
-          y$time <- as.factor(rep(time,each=nrow(Y@grid[[vars[j]]])))
-          y$x <- rep(1:nrow(Y@grid[[vars[j]]]),ncol(Y@C[[vars[j]]]))
+          if(is.na(mains[j]) && length(vars)==1 || is.na(mains[j]) && subplot==FALSE) mains[j] <- paste("Variable",vars[j]);
+          if(subplot==TRUE && length(vars)>1) mains[j]=NA
+          y <- tibble::as_tibble(data.frame(y=c(x@B[[vars[j]]]%*%x@C[[vars[j]]])))
+          y$time <- as.factor(rep(time,each=nrow(x@grid[[vars[j]]])))
+          y$x <- rep(1:nrow(x@grid[[vars[j]]]),ncol(x@C[[vars[j]]]))
           Pl[[j]] <- y %>%
             group_by(time) %>%
             plot_ly(x=~x,y=~y) %>%
             add_lines(color = ~time,colors=c("lightsteelblue","royalblue4"),showlegend=FALSE) %>%
-            layout(title=main[j],yaxis = list(title = ylabels[j]),xaxis = list(title = xlabels[j]))
+            layout(title=mains[j],yaxis = list(title = ylabels[j]),xaxis = list(title = xlabels[j]))
 
 
         }else if(types[j]=="heatmap"){
-
+          u=seq(x@grid[[vars[j]]])
           if(is.na(xlabels[j])) xlabels[j] <- "x";
           if(is.na(tlabels[j])) tlabels[j] <- "t";
-          if(is.na(main[j]) && length(vars)==1 || is.na(main[j]) && subplot==FALSE) main[j] <- paste("Variable",vars[j]);
-          if(subplot==TRUE && length(vars)>1) main[j]=NA
-          z0 <- Y@B[[vars[j]]]%*%Y@C[[vars[j]]]
+          if(is.na(mains[j]) && length(vars)==1 || is.na(mains[j]) && subplot==FALSE) mains[j] <- paste("Variable",vars[j]);
+          if(subplot==TRUE && length(vars)>1) mains[j]=NA
+          z0 <- x@B[[vars[j]]]%*%x@C[[vars[j]]]
           Pl[[j]] <- plot_ly(z = z0, x=time, y = u, type = "heatmap", colorscale = list(c(0,'#FFFFFAFF'), c(1,'#FF0000FF')),
                              showscale =FALSE) %>%
-            layout(title = main[j], yaxis = list(title = xlabels[j]),xaxis = list(title = tlabels[j]))
+            layout(title = mains[j], yaxis = list(title = xlabels[j]),xaxis = list(title = tlabels[j]))
         }else if(types[j]=="3Dsurface"){
-
-          z0 <- Y@B[[vars[j]]]%*%Y@C[[vars[j]]]
+          u=seq(x@grid[[vars[j]]])
+          z0 <- x@B[[vars[j]]]%*%x@C[[vars[j]]]
           axx <-axy <-axz <- list(
             gridcolor="rgb(180, 180, 180)",
             zerolinecolor="rgb(255,255,255)"
@@ -195,9 +187,9 @@ plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,
 
         }else if (types[j]=="3Dline"){
 
-          D0 <- tibble::as_tibble(data.frame(z=c(Y@B[[vars[j]]]%*%Y@C[[vars[j]]])))
-          D0$time <- rep(time,each=nrow(Y@grid[[vars[j]]]))
-          D0$x <- rep(1:nrow(Y@grid[[vars[j]]]),ncol(Y@C[[vars[j]]]))
+          D0 <- tibble::as_tibble(data.frame(z=c(x@B[[vars[j]]]%*%x@C[[vars[j]]])))
+          D0$time <- rep(time,each=nrow(x@grid[[vars[j]]]))
+          D0$x <- rep(1:nrow(x@grid[[vars[j]]]),ncol(x@C[[vars[j]]]))
           axx <-axy <-axz <- list(
             gridcolor="rgb(180, 180, 180)",
             zerolinecolor="rgb(255,255,255)"
@@ -217,17 +209,20 @@ plot.fts <- function(Y,vars=NULL,types=NULL,subplot=TRUE,main=NULL,ylabels=NULL,
       }else{
         if(is.na(types[j])==FALSE && types[j]!="heatmap") warning("The only plotting option available for variables observed over two-dimensional domains is \"heatmap\". Other plotting options will be added for these types of variables in the future.");
         count_twod=count_twod+1
+        x_1=NULL
+        x_2=NULL
+        time=NULL
         if(is.na(ylabels[j])) ylabels[j] <- "y";
         if(is.na(xlabels[j])) xlabels[j] <- "x";
         if(is.na(zlabels[j])) zlabels[j] <- "z";
-        if(is.na(main[j])) main[j] <- paste("Variable",vars[j]);
-        y <- tibble::as_tibble(data.frame(y=c(Y@B[[vars[j]]]%*%Y@C[[vars[j]]])))
-        time=as.character(1:ncol(Y@C[[1]]))
-        y$time <- as.factor(rep(time,each=nrow(Y@grid[[vars[j]]])))
-        y$x_1 <- rep(Y@grid[[vars[j]]][,1],ncol(Y@C[[vars[j]]]))
-        y$x_2 <- rep(Y@grid[[vars[j]]][,2],ncol(Y@C[[vars[j]]]))
+        if(is.na(mains[j])) mains[j] <- paste("Variable",vars[j]);
+        y <- tibble::as_tibble(data.frame(y=c(x@B[[vars[j]]]%*%x@C[[vars[j]]])))
+        time=as.character(1:ncol(x@C[[1]]))
+        y$time <- as.factor(rep(time,each=nrow(x@grid[[vars[j]]])))
+        y$x_1 <- rep(x@grid[[vars[j]]][,1],ncol(x@C[[vars[j]]]))
+        y$x_2 <- rep(x@grid[[vars[j]]][,2],ncol(x@C[[vars[j]]]))
         Pl[[j]] <- ggplotly(ggplot(y,aes(x_1,x_2,fill=y,frame=time))+geom_tile()+scale_fill_distiller(palette = "RdYlBu")+theme_ipsum()+xlab(xlabels[j])+
-                              ylab(ylabels[j])+labs(fill=zlabels[j])+ggtitle(main[j]))
+                              ylab(ylabels[j])+labs(fill=zlabels[j])+ggtitle(mains[j]))
 
       }
 

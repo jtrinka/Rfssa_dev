@@ -1,16 +1,20 @@
 #' Functional Time Series Class
 #'
-#' This function is used to create functional time series (fts) objects from lists of discretely sampled data, basis specifications, and grid elements which provide the domain that each variable is observed over.
-#' @param X  A list of length \eqn{p} where \eqn{p} is a positive integer specifying the number of variables observed in the fts. Each entry in the list should be a matrix or
-#' an array. For a variable observed over a one-dimensional domain, the list entry should be a \eqn{m \times N} matrix where \eqn{m} is the number of sampling points for each observation and \eqn{N} is the number of observations.
-#' For a variable observed over a two-dimensional domain, the list entry should be a \eqn{m_1 \times m_2 \times N} array where \eqn{m_1} is the number of sampling points in the horizontal direction and
-#' \eqn{m_2} is the number of sampling points in the vertical direction.
-#' @param B A list of length \eqn{p}. Each entry in the list should be either a matrix specifying the basis for each variable or each list entry should be a list specifying the degrees of freedom and desired basis type to be used in the smoothing process.
-#' For a variable observed over a one-dimensional domain, the list entry should be a \eqn{m \times d} matrix or the list entry should be a list of the form, "list(\eqn{d}, "basistype")", where \eqn{d} specifies the number basis elements and "basistype" is a string that is set to "bspline" or "fourier" to specify the type of basis.
-#' For a variable observed over a two-dimensional domain, the list entry should be a \eqn{m_1 m_2 \times d_1 d_2} matrix or the list entry should be a list of the form, "list(\eqn{d_1},\eqn{d_2},"basistype1","basistype2")", where \eqn{d_1} specifies the number of basis elements in the horizontal direction, \eqn{d_2} specifies the number of basis elements in the vertical direction, "basistype1" is set to be "bspline" or "fourier" which specifies the type of basis in the horizontal direction, and "basistype2" is set to be "bspline" or "fourier" which specifies the type of basis in the vertical direction.
-#' @param grid A list of length \eqn{p}
+#' This function is used to create functional time series (fts) objects from lists of discretely sampled data, basis specifications, and grid elements which provide the domain that each variable is observed over. Each variable is assumed to be observed over a regular and equidistant grid.
+#' @param X  A list of length p where p is a positive integer specifying the number of variables observed in the fts. Each entry in the list should be a matrix or
+#' an array. For a variable observed over a one-dimensional domain, the list entry should be a m by N matrix where m is the number of sampling points for each observation and N is the number of observations.
+#' For a variable observed over a two-dimensional domain, the list entry should be a m_1 by m_2 by N array where m_1 is the number of sampling points in the horizontal direction and
+#' m_2 is the number of sampling points in the vertical direction.
+#' @param B A list of length p. Each entry in the list should be either a matrix specifying the basis for each variable or each list entry should be a list specifying the number of basis elements and desired basis type to be used in the smoothing process.
+#' For a variable observed over a one-dimensional domain, the list entry should be a m by d matrix or the list entry should be a list of the form, \code{list(d, "basistype")}, where d specifies the number basis elements and "basistype" is a string that is set to \code{"bspline"} or \code{"fourier"} to specify the type of basis.
+#' For a variable observed over a two-dimensional domain, the list entry should be a (m_1)(m_2) by (d_1)(d_2) matrix or the list entry should be a list of the form, \code{list(d_1,d_2,"basistype1","basistype2")}, where d_1 specifies the number of basis elements in the horizontal direction, d_2 specifies the number of basis elements in the vertical direction, \code{"basistype1"} is set to be \code{"bspline"} or \code{"fourier"} which specifies the type of basis in the horizontal direction, and \code{"basistype2"} is set to be \code{"bspline"} or \code{"fourier"} which specifies the type of basis in the vertical direction.
+#' @param grid A list of length p. Each entry in the list should either be a numeric or a list of numeric elements depending on the dimension of the domain the variable is observed over.
+#' For a variable observed over a one-dimensional domain, the list entry should be either an ordered (from smallest to largest) numeric of length m giving the sampling points or a numeric of the form, \code{c(x_1,x_2)} where x_1 and x_2 are the smallest and largest values attained in the domain of the variable respectively. In addition, these list entries can also be provided in a list.
+#' For a variable observed over a two-dimensional domain, the list entry should be either a list of the form, \code{list(u,v)}, or of the form, \code{list(c(x_1,x_2),v)}, or of the form, \code{list(u,c(x_3,x_4))}, or of the form, \code{list(c(x_1,x_2),c(x_3,x_4))} where u is a numeric with minimium and maximum values of x_1 and x_2 respectively and v is a numeric with minimium and maximum values of x_3 and x_4 respectively.
+#' @importFrom fda fd inprod eval.fd smooth.basis is.fd create.bspline.basis create.fourier.basis eval.basis
+#' @importFrom methods is new
 #' @seealso \code{\link{fssa}}
-#' @note refer to \code{\link{fssa}} for an example on how to run this function starting from fd objects
+#' @note Refer to \code{\link{fssa}} for an example on how to run this function.
 #' @export
 fts <- function(X, B, grid){
   fts=new(Class = "fts",C = X, B = B, grid = grid)
@@ -101,7 +105,7 @@ fts <- function(X, B, grid){
         for(i in 1:M_x){
           for(k in 1:M_y){
 
-            X_temp[count,1]=X[[j]][k,i]
+            X_temp[count,1]=X[[j]][i,k]
             count=count+1
 
           }
@@ -119,7 +123,7 @@ fts <- function(X, B, grid){
           for(i in 1:M_x){
             for(k in 1:M_y){
 
-              X_temp[count,n]=X[[j]][k,i,n]
+              X_temp[count,n]=X[[j]][i,k,n]
               count=count+1
 
             }
@@ -136,7 +140,8 @@ fts <- function(X, B, grid){
       # If the grid is supplied in a list, the variable corresponds with a one-dimensional domain, and the list element is the grid.
       # Example: list(u)
       M_x=length(grid[[j]][[1]])
-      fts@grid[[j]]=matrix(grid[[j]][[1]],ncol=1)
+      u = seq(min(grid[[j]][[1]]),max(grid[[j]][[1]]),length.out=M_x)
+      fts@grid[[j]]=matrix(u,ncol=1)
       X[[j]]=as.matrix(X[[j]])
 
 

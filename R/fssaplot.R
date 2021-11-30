@@ -4,13 +4,13 @@
 #'  This is a plotting method for objects of class functional singular spectrum analysis (\code{\link{fssa}}). The method is designed to help the user make decisions
 #'  on how to do the grouping stage of univariate or multivariate functional singular spectrum analysis.
 #'
-#' @param x an object of class \code{\link{fssa}}
-#' @param d an integer which is the number of elementary components in the plot
-#' @param idx a vector of indices of eigen elements to plot
-#' @param idy a second vector of indices of eigen elements to plot (for type="paired")
-#' @param groups a list or vector of indices determines grouping used for the decomposition(for type="wcor")
-#' @param contrib a logical where if the value is 'TRUE' (the default), the contribution of the component to the total variance is displayed
-#' @param type the type of plot to be displayed where possible types are:
+#' @param x An object of class \code{\link{fssa}}.
+#' @param d An integer which is the number of elementary components in the plot.
+#' @param idx A vector of indices of eigen elements to plot.
+#' @param idy A second vector of indices of eigen elements to plot (for \code{type="paired"}).
+#' @param groups A list or vector of indices determines grouping used for the decomposition(for \code{type="wcor"}).
+#' @param contrib A logical where if the value is \code{TRUE} (the default), the contribution of the component to the total variance is displayed.
+#' @param type The type of plot to be displayed where possible types are:
 #' \itemize{
 #' \item \code{"values"} plot the square-root of singular values (default)
 #' \item \code{"paired"} plot the pairs of eigenfunction's coefficients (useful for the detection of periodic components)
@@ -18,50 +18,13 @@
 #' \item \code{"vectors"} plot the eigenfunction's coefficients (useful for the detection of period length)
 #' \item \code{"lcurves"} plot of the eigenfunctions (useful for the detection of period length)
 #' \item \code{"lheats"} heatmap plot the eigenfunctions (useful for the detection of meaningful patterns)
-#' \item \code{"periodogram"} periodogram plot (useful for the detecting the frequencies of oscillations in functional data)
+#' \item \code{"periodogram"} periodogram plot (useful for the detecting the frequencies of oscillations in functional data).
 #' }
-#' @param var an integer specifying the variable number
-#' @param ylab the character vector of name of variables
-#' @param ... arguments to be passed to methods, such as graphical parameters
-#' @examples
-#' \dontrun{
-#' ## Simulated Data Example
-#' require(Rfssa)
-#' require(fda)
-#' n <- 50 # Number of points in each function.
-#' d <- 9
-#' N <- 60
-#' sigma <- 0.5
-#' set.seed(110)
-#' E <- matrix(rnorm(N*d,0,sigma/sqrt(d)),ncol = N, nrow = d)
-#' basis <- create.fourier.basis(c(0, 1), d)
-#' Eps <- fd(E,basis)
-#' om1 <- 1/10
-#' om2 <- 1/4
-#' f0 <- function(tau, t) 2*exp(-tau*t/10)
-#' f1 <- function(tau, t) 0.2*exp(-tau^3) * cos(2 * pi * t * om1)
-#' f2 <- function(tau, t) -0.2*exp(-tau^2) * cos(2 * pi * t * om2)
-#' tau <- seq(0, 1, length = n)
-#' t <- 1:N
-#' f0_mat <- outer(tau, t, FUN = f0)
-#' f0_fd <- smooth.basis(tau, f0_mat, basis)$fd
-#' f1_mat <- outer(tau, t, FUN = f1)
-#' f1_fd <- smooth.basis(tau, f1_mat, basis)$fd
-#' f2_mat <- outer(tau, t, FUN = f2)
-#' f2_fd <- smooth.basis(tau, f2_mat, basis)$fd
-#' Y_fd <- f0_fd+f1_fd+f2_fd
-#' L <-10
-#' U <- fssa(Y_fd,L)
-#' plot(U)
-#' plot(U,d=4,type="lcurves")
-#' plot(U,d=4,type="vectors")
-#' plot(U,d=5,type="paired")
-#' plot(U,d=5,type="wcor")
-#' plot(U,d=5,type="lheats")
-#' plot(U,d=5,type="periodogram")
-#' }
+#' @param vars A numeric specifying the variable number (can be used in plotting MFSSA \code{"lheats"} or \code{"lcurves"}).
+#' @param ylab The character vector of name of variables.
+#' @param ... Arguments to be passed to methods, such as graphical parameters.
 #' @seealso \code{\link{fssa}}, \code{\link{plot.fts}}
-#' @note for a multivariate example, see the examples in \code{\link{fssa}}
+#' @note See \code{\link{fssa}} examples.
 #' @export
 plot.fssa <- function(x, d = length(x$values),
                       idx = 1:d, idy = idx+1, contrib = TRUE,
@@ -135,6 +98,9 @@ plot.fssa <- function(x, d = length(x$values),
           graphics::plot(p1)
         }else if(type =="lheats" && ncol(x$Y@grid[[vars[j]]])==2){
           flag_2=1
+          x_1=NULL
+          x_2=NULL
+          time=NULL
           for(i in idx){
             if(p==1){
               y <- tibble::as_tibble(data.frame(y=c(x[[i]])))
@@ -157,7 +123,7 @@ plot.fssa <- function(x, d = length(x$values),
                         mar = c(2, 2, 3, 1),oma=c(2,2,7,1),cex.main=1.6)
           title0 <- "Singular functions"
           if(p>1) title0 <- paste(title0,"of the variable",
-                                  ifelse(is.na(ylab),vars,ylab))
+                                  ifelse(is.na(ylab),vars[j],ylab))
 
           for (i in 1:d_idx){
             if(p==1){
@@ -181,6 +147,9 @@ plot.fssa <- function(x, d = length(x$values),
 
         }else if(type =="lcurves" && ncol(x$Y@grid[[vars[j]]])==2){
           flag_2=1
+          x_1=NULL
+          x_2=NULL
+          time=NULL
           warning("\"lcurves\" plotting option defined only for variables observed over one-dimensional domains. Plotting variable singular functions using \"lheats\".")
           for(i in idx){
             if(p==1){

@@ -184,7 +184,7 @@ server.mfssa <- function(input, output, clientData, session) {
       input.g <- eval(parse(text=paste0("list(",input$g,")"))); uUf <- list()
       if ("uf" %in% input$dmd.uf) for (i in 1:length(iTs())) {uUf[[i]] <- fssa(fts(Y[[i]]), input$fssaL)}
       fts.Y <- fts(Y); if (fts.Y$p==1) fts.Y$fd <- list(fts.Y$fd)
-      mUf <- fssa(fts.Y, input$fssaL, type="mfssa")
+      mUf <- fssa(fts.Y, input$fssaL)
       Ys <- NULL; for (i in 1:length(iTs())) { Ys <- cbind(Ys,t(iTs()[[i]])) }
       Us <- ssa(Ys, input$mssaL, kind = "mssa");
       return(list(Us=Us, mUf=mUf, uUf=uUf, tau=tau, bas.fssa=bas.fssa))
