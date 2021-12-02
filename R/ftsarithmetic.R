@@ -132,10 +132,10 @@
 
         eval_fts[[j]]=basis[[j]]%*%(Y2@C[[j]])+Y1[j]
         N=ncol(eval_fts[[j]])
-        if(ncol(Y1@grid[[j]])==2){
+        if(ncol(Y2@grid[[j]])==2){
 
-          x=unique(Y1@grid[[j]][,1])
-          y=unique(Y1@grid[[j]][,2])
+          x=unique(Y2@grid[[j]][,1])
+          y=unique(Y2@grid[[j]][,2])
           new_fts_two_d=array(data=NA,dim=c(length(x),length(y),N))
           for(n in 1:N){
             count=1
@@ -152,7 +152,7 @@
           eval_fts[[j]]=new_fts_two_d
           new_grid[[j]]=list(x,y)
         }else{
-          new_grid[[j]]=Y1@grid[[j]]
+          new_grid[[j]]=Y2@grid[[j]]
 
         }
 
@@ -293,7 +293,7 @@
 
     Y1=as.numeric(Y1)
     p=length(Y2@C)
-    if(length(Y1)==1) Y2=rep(Y1,p);
+    if(length(Y1)==1) Y1=rep(Y1,p);
     grid=Y2@grid
     basis=Y2@B
     eval_fts=list()
@@ -303,10 +303,10 @@
       eval_fts[[j]]=Y1[j]-basis[[j]]%*%(Y2@C[[j]])
       N=ncol(eval_fts[[j]])
 
-      if(ncol(Y1@grid[[j]])==2){
+      if(ncol(Y2@grid[[j]])==2){
 
-        x=unique(Y1@grid[[j]][,1])
-        y=unique(Y1@grid[[j]][,2])
+        x=unique(Y2@grid[[j]][,1])
+        y=unique(Y2@grid[[j]][,2])
         new_fts_two_d=array(data=NA,dim=c(length(x),length(y),N))
         for(n in 1:N){
           count=1
@@ -323,7 +323,7 @@
         eval_fts[[j]]=new_fts_two_d
         new_grid[[j]]=list(x,y)
       }else{
-        new_grid[[j]]=Y1@grid[[j]]
+        new_grid[[j]]=Y2@grid[[j]]
 
       }
 
@@ -481,10 +481,10 @@
       Y2_j_eval=basis[[j]]%*%Y2@C[[j]]
       eval_fts[[j]]=Y2_j_eval*Y1[j]
       N=ncol(eval_fts[[j]])
-      if(ncol(Y1@grid[[j]])==2){
+      if(ncol(Y2@grid[[j]])==2){
 
-        x=unique(Y1@grid[[j]][,1])
-        y=unique(Y1@grid[[j]][,2])
+        x=unique(Y2@grid[[j]][,1])
+        y=unique(Y2@grid[[j]][,2])
         new_fts_two_d=array(data=NA,dim=c(length(x),length(y),N))
         for(n in 1:N){
           count=1
@@ -501,7 +501,7 @@
         eval_fts[[j]]=new_fts_two_d
         new_grid[[j]]=list(x,y)
       }else{
-        new_grid[[j]]=Y1@grid[[j]]
+        new_grid[[j]]=Y2@grid[[j]]
 
       }
 

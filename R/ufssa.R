@@ -14,7 +14,7 @@ ufssa <- function(Y, L) {
   }
   S0 <- SS(K, L, C_tilde, d)
   H <- solve(Gram(K, L, G, d))
-  Q <- eigen(H %*% S0)
+  Q <- suppressWarnings(EigenDecomp(AtimesB(nrow(H),H,S0)))
   Q$vectors <- Re(Q$vectors)
   out <- list(NA)
   d1 <- sum(Re(Q$values) > 0.00001)

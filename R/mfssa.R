@@ -31,10 +31,9 @@ mfssa <- function(Y, L = floor(Y$N/2L)){
     }
   }
   # find the desired matrices
-  S_0 <- SSM(K, L, d_tilde, p, C_tilde, shifter)
-  G <- Gramm(K,L,p,d_tilde,G_1,shifter,d)
-  S <- solve(G)%*%S_0 # S matrix which parameterizes var/cov op.
-  Q <- eigen(S)
+  S0 <- SSM(K, L, d_tilde, p, C_tilde, shifter)
+  H <- solve(Gramm(K,L,p,d_tilde,G_1,shifter,d))
+  Q <- suppressWarnings(EigenDecomp(AtimesB(nrow(H),H,S0)))
   coefs0 <- Re(Q$vectors)
   p_c <- list()
   r <- sum(Re(Q$values) > 0.01)

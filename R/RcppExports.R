@@ -19,6 +19,9 @@ HpLinprod <- function(X, Y, G, p) {
 #' @useDynLib Rfssa, .registration = TRUE
 NULL
 
+#'@importFrom Rcpp sourceCpp
+NULL
+
 #' @importFrom Rcpp sourceCpp
 NULL
 
@@ -34,6 +37,16 @@ NULL
 #'@importFrom Rcpp sourceCpp
 Cofmat <- function(d, L, cx) {
     .Call(`_Rfssa_Cofmat`, d, L, cx)
+}
+
+#'@importFrom Rcpp sourceCpp
+AtimesB <- function(c, A, B) {
+    .Call(`_Rfssa_AtimesB`, c, A, B)
+}
+
+#'@importFrom Rcpp sourceCpp
+EigenDecomp <- function(A) {
+    .Call(`_Rfssa_EigenDecomp`, A)
 }
 
 #'@importFrom Rcpp sourceCpp

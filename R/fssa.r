@@ -17,8 +17,8 @@
 #'
 #' \dontrun{
 #' ## Univariate FSSA Example on Callcenter data
-#' data("Callcenter")
 #' require(Rfssa)
+#' data("Callcenter")
 #' ## Define functional objects
 #' D <- matrix(sqrt(Callcenter$calls),nrow = 240)
 #' N <- ncol(D)
@@ -42,7 +42,7 @@
 #' plot(U,d=10,type="wcor")
 #' gr <- list(1,2:3,4:5,6:7,8:20)
 #' Q <- freconstruct(U, gr)
-#' plot(Y,mains="Call Numbers(Observed)")
+#' plot(Y,mains="Sqrt of Call Center Data")
 #' plot(Q[[1]],mains="1st Component")
 #' plot(Q[[2]],mains="2nd Component")
 #' plot(Q[[3]],mains="3rd Component")
