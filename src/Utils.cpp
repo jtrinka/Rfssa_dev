@@ -1,6 +1,10 @@
+#include <RcppEigen.h>
 #include <Rcpp.h>
 #include <list>
 using namespace Rcpp;
+
+// [[Rcpp::depends(RcppEigen)]]
+
 // Module  function
 //' @importFrom Rcpp sourceCpp
 //' @useDynLib Rfssa, .registration = TRUE
@@ -28,6 +32,56 @@ NumericMatrix Cofmat (int d,int L, NumericVector cx)
     }
   }
   return S;
+}
+
+// Dot product
+//'@importFrom Rcpp sourceCpp
+
+double adotb(int i, int j, int c, NumericMatrix A, NumericMatrix B)
+{
+
+  double out(0);
+  for(int k=0; k<c; k++){
+
+    out+=A(i,k)*B(k,j);
+
+  }
+  return out;
+
+}
+
+// Matrix Multiplication
+//'@importFrom Rcpp sourceCpp
+// [[Rcpp::export]]
+NumericMatrix AtimesB (int c, NumericMatrix A, NumericMatrix B)
+{ NumericMatrix C(c,c);
+  for(int i=0; i < c; i++){
+    for(int j=0; j < c; j++) {
+      C(i,j)=adotb(i,j,c,A,B);
+    }
+  }
+  return C;
+}
+
+// Eigendecomposition
+//
+//'@importFrom Rcpp sourceCpp
+// [[Rcpp::export]]
+Rcpp::List EigenDecomp (NumericMatrix A)
+{
+  Eigen::Map<Eigen::MatrixXd> A_eigen = as<Eigen::Map<Eigen::MatrixXd> >(A);
+  Eigen::EigenSolver<Eigen::MatrixXd> es(A_eigen);
+
+  SEXP s_1 = Rcpp::wrap(es.eigenvalues());
+  Rcpp::NumericVector w_1(s_1);
+
+  SEXP s_2 = Rcpp::wrap(es.eigenvectors());
+  Rcpp::NumericMatrix w_2(s_2);
+
+
+
+  return Rcpp::List::create(Rcpp::Named("values")=w_1, Rcpp::Named("vectors")=w_2);
+
 }
 
 // Sij value
