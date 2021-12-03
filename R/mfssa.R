@@ -1,5 +1,5 @@
 # Embedding and decomposition stages of multivariate functional singular spectrum analysis.
-mfssa <- function(Y, L = floor(Y$N/2L)){
+mfssa <- function(Y, L, ntriples){
   # get c plus plus code
   p <- length(Y@C)
   Y_d=matrix(data=0,nrow=1,ncol=p)
@@ -33,13 +33,14 @@ mfssa <- function(Y, L = floor(Y$N/2L)){
   # find the desired matrices
   S0 <- SSM(K, L, d_tilde, p, C_tilde, shifter)
   H <- solve(Gramm(K,L,p,d_tilde,G_1,shifter,d))
-  Q <- suppressWarnings(EigenDecomp(AtimesB(nrow(H),H,S0)))
-  coefs0 <- Re(Q$vectors)
+  Q <- eigs(H%*%S0,ntriples)
+  Q$values=Re(Q$values)
+  Q$vectors=Re(Q$vectors)
+  coefs0 <- Q$vectors
   p_c <- list()
-  r <- sum(Re(Q$values) > 0.01)
-  values <- Re(Q$values[1L:r])
+  values <- Q$values[1L:ntriples]
   out <- list()
-  for(i in 1L:(r)){
+  for(i in 1L:(ntriples)){
     my_pcs <- list(NA)
     for(j in 1L:p){
       my_pcs[[j]] <- Y@B[[j]]%*%Cofmat((d[j+1L]/L), L, coefs0[(shifter[1L,(j+1L)]:shifter[2L,(j+1L)]),i])
@@ -50,6 +51,6 @@ mfssa <- function(Y, L = floor(Y$N/2L)){
   out$L <- L
   out$N <- N
   out$Y <- Y
-  out$RVectrs <- mV(out,r)
+  out$RVectrs <- mV(out,ntriples)
   return(out)
 }

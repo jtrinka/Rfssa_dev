@@ -12,7 +12,9 @@
 #' \item{Y}{the original functional time series}.
 #' @param Y An object of class \code{\link{fts}}.
 #' @param L A positive integer giving the window length.
+#' @param ntriples A positive integer specifying the number of eigentriples to calculate in the decomposition.
 #' @importFrom fda fd inprod eval.fd smooth.basis is.fd create.bspline.basis
+#' @importFrom RSpectra eigs
 #' @examples
 #'
 #' \dontrun{
@@ -95,13 +97,13 @@
 #'}
 #' @useDynLib Rfssa
 #' @export
-fssa <- function(Y, L = NA) {
+fssa <- function(Y, L = NA, ntriples = 20) {
   N = ncol(Y@C[[1]])
   if(is.na(L))  L <- floor(N / 2L)
   if(length(Y@C)==1){
-    out <- ufssa(Y,L)
+    out <- ufssa(Y, L, ntriples)
   } else{
-    out <- mfssa(Y,L)
+    out <- mfssa(Y, L, ntriples)
   }
   class(out) <- "fssa"
   return(out)
