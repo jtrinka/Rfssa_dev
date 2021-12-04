@@ -2,6 +2,7 @@
 // Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #include <RcppArmadillo.h>
+#include <RcppEigen.h>
 #include <Rcpp.h>
 
 using namespace Rcpp;
@@ -54,6 +55,40 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type L(LSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type cx(cxSEXP);
     rcpp_result_gen = Rcpp::wrap(Cofmat(d, L, cx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// CalculateInverse
+SEXP CalculateInverse(const Eigen::Map<Eigen::MatrixXd> A);
+RcppExport SEXP _Rfssa_CalculateInverse(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(CalculateInverse(A));
+    return rcpp_result_gen;
+END_RCPP
+}
+// AtimesB
+SEXP AtimesB(const Eigen::Map<Eigen::MatrixXd> A, Eigen::Map<Eigen::MatrixXd> B);
+RcppExport SEXP _Rfssa_AtimesB(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
+    Rcpp::traits::input_parameter< Eigen::Map<Eigen::MatrixXd> >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(AtimesB(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
+// EigenDecomp
+Rcpp::List EigenDecomp(const Eigen::Map<Eigen::MatrixXd> A);
+RcppExport SEXP _Rfssa_EigenDecomp(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd> >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(EigenDecomp(A));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -153,6 +188,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_Rfssa_HLinprod", (DL_FUNC) &_Rfssa_HLinprod, 3},
     {"_Rfssa_HpLinprod", (DL_FUNC) &_Rfssa_HpLinprod, 4},
     {"_Rfssa_Cofmat", (DL_FUNC) &_Rfssa_Cofmat, 3},
+    {"_Rfssa_CalculateInverse", (DL_FUNC) &_Rfssa_CalculateInverse, 1},
+    {"_Rfssa_AtimesB", (DL_FUNC) &_Rfssa_AtimesB, 2},
+    {"_Rfssa_EigenDecomp", (DL_FUNC) &_Rfssa_EigenDecomp, 1},
     {"_Rfssa_SS", (DL_FUNC) &_Rfssa_SS, 4},
     {"_Rfssa_Gram", (DL_FUNC) &_Rfssa_Gram, 4},
     {"_Rfssa_SSM", (DL_FUNC) &_Rfssa_SSM, 6},
