@@ -12,9 +12,13 @@ ufssa <- function(Y, L, ntriples) {
     C_tilde <-t(twodG(A=basis%*%Y@C[[1]],B=basis,grid=Y@grid[[1]]))
     G <- twodG(A=basis,B=basis,grid=Y@grid[[1]])
   }
-  S0 <- SS(K, L, C_tilde, d)
-  H <- solve(Gram(K, L, G, d))
-  Q <- eigs(H%*%S0,ntriples)
+  #Calculating Variance/Covariance Structure
+  S0=SS(K, L, C_tilde, d)
+  #Calculating Gram Matrix
+  H=solve(Gram(K, L, G, d))
+  #Calculating Eigen Triples
+  Q <- eigs(AtimesB(H,S0),ntriples)
+  #Returning results
   Q$values=Re(Q$values)
   Q$vectors=Re(Q$vectors)
   out <- list(NA)

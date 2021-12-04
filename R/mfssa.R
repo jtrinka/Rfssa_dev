@@ -33,7 +33,7 @@ mfssa <- function(Y, L, ntriples){
   # find the desired matrices
   S0 <- SSM(K, L, d_tilde, p, C_tilde, shifter)
   H <- solve(Gramm(K,L,p,d_tilde,G_1,shifter,d))
-  Q <- eigs(H%*%S0,ntriples)
+  Q <- eigs(AtimesB(H,S0),ntriples)
   Q$values=Re(Q$values)
   Q$vectors=Re(Q$vectors)
   coefs0 <- Q$vectors
