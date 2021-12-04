@@ -34,18 +34,6 @@ NumericMatrix Cofmat (int d,int L, NumericVector cx)
   return S;
 }
 
-// Matrix Inversion
-//
-//'@importFrom Rcpp sourceCpp
-// [[Rcpp::export]]
-SEXP CalculateInverse(const Eigen::Map<Eigen::MatrixXd> A)
-{
-
-  Eigen::PartialPivLU<Eigen::MatrixXd> lu(A);
-
-  return Rcpp::wrap(lu.inverse());
-
-}
 
 //'@importFrom Rcpp sourceCpp
 // [[Rcpp::export]]
@@ -55,17 +43,6 @@ SEXP AtimesB(const Eigen::Map<Eigen::MatrixXd> A, Eigen::Map<Eigen::MatrixXd> B)
   return Rcpp::wrap(C);
 }
 
-// Eigendecomposition
-//
-//'@importFrom Rcpp sourceCpp
-// [[Rcpp::export]]
-Rcpp::List EigenDecomp(const Eigen::Map<Eigen::MatrixXd> A)
-{
-
-  Eigen::EigenSolver<Eigen::MatrixXd> es(A);
-  return Rcpp::List::create(Rcpp::Named("values")=Rcpp::wrap(es.eigenvalues()), Rcpp::Named("vectors")=Rcpp::wrap(es.eigenvectors()));
-
-}
 
 
 // Sij value
