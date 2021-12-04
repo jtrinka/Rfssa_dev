@@ -30,10 +30,13 @@ mfssa <- function(Y, L, ntriples){
       shifter[2L,i+1L]=shifter[2L,i]+d[i+1L]
     }
   }
-  # find the desired matrices
+  #Calculating Variance/Covariance Structure
   S0 <- SSM(K, L, d_tilde, p, C_tilde, shifter)
+  #Calculating Gram Matrix
   H <- solve(Gramm(K,L,p,d_tilde,G_1,shifter,d))
+  #Calculating Eigen Triples
   Q <- eigs(AtimesB(H,S0),ntriples)
+  #Returning results
   Q$values=Re(Q$values)
   Q$vectors=Re(Q$vectors)
   coefs0 <- Q$vectors
