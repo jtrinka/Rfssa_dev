@@ -15,7 +15,7 @@ ufssa <- function(Y, L, ntriples) {
   #Calculating Variance/Covariance Structure
   S0=SS(K, L, C_tilde, d)
   #Calculating Gram Matrix
-  H=solve(Gram(K, L, G, d))
+  H=CalculateInverse(Gram(K, L, G, d))
   #Calculating Eigen Triples
   Q <- eigs(AtimesB(H,S0),ntriples)
   #Returning results

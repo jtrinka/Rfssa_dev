@@ -13,6 +13,7 @@
 #' @param Y An object of class \code{\link{fts}}.
 #' @param L A positive integer giving the window length.
 #' @param ntriples A positive integer specifying the number of eigentriples to calculate in the decomposition.
+#' @param type A string indicating which type of fssa to perform. Use \code{type="ufssa"} to perform univariate fssa (default for univariate fts). Use \code{type="mfssa"} to perform multivariate fssa (default for multivariate fts).
 #' @importFrom fda fd inprod eval.fd smooth.basis is.fd create.bspline.basis
 #' @importFrom RSpectra eigs
 #' @examples
@@ -97,13 +98,15 @@
 #'}
 #' @useDynLib Rfssa
 #' @export
-fssa <- function(Y, L = NA, ntriples = 20) {
+fssa <- function(Y, L = NA, ntriples = 20, type="ufssa") {
   N = ncol(Y@C[[1]])
   if(is.na(L))  L <- floor(N / 2L)
-  if(length(Y@C)==1){
+  if(length(Y@C)==1 && type=="ufssa"){
     out <- ufssa(Y, L, ntriples)
-  } else{
+  } else if(length(Y@C)>1 || type=="mfssa"){
     out <- mfssa(Y, L, ntriples)
+  }else{
+    stop("Error in type or dimension.")
   }
   class(out) <- "fssa"
   return(out)

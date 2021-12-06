@@ -33,7 +33,7 @@ mfssa <- function(Y, L, ntriples){
   #Calculating Variance/Covariance Structure
   S0 <- SSM(K, L, d_tilde, p, C_tilde, shifter)
   #Calculating Gram Matrix
-  H <- solve(Gramm(K,L,p,d_tilde,G_1,shifter,d))
+  H <- CalculateInverse(Gramm(K,L,p,d_tilde,G_1,shifter,d))
   #Calculating Eigen Triples
   Q <- eigs(AtimesB(H,S0),ntriples)
   #Returning results
