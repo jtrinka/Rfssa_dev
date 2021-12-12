@@ -44,6 +44,7 @@ SEXP CalculateInverse (const Eigen::Map<Eigen::MatrixXd> A)
   return Rcpp::wrap(lu.inverse());
 
 }
+// Matrix Multiplication
 
 //'@importFrom Rcpp sourceCpp
 // [[Rcpp::export]]
